@@ -19,12 +19,14 @@ default = ["inclramp"]
 keygen = ["primal"]
 inclramp = ["ramp"]
 inclnum = ["num"]
+inclgmp = ["rust-gmp"]
 
 [dependencies]
 rand = "0.3"
 num-traits = "0.1"
 ramp = { version = "0.3", optional = true }
 num = { version = "0.1", optional = true }
+rust-gmp = { version = "0.3", optional = true }
 primal = { version = "0.2", optional = true }
 
 [dev-dependencies]
