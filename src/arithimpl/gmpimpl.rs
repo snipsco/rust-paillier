@@ -26,21 +26,21 @@ impl NumberTests for Mpz {
 
 pub use num_traits::{Zero, One};
 
-impl ModularArithmetic for Mpz {
-
-    fn modinv(a: &Self, prime: &Self) -> Self {
-        a.clone()
-    }
-
-    fn modpow(x: &Self, e: &Self, prime: &Self) -> Self {
-        x.clone()
-    }
-
-    fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
-        (a.clone(), a.clone(), a.clone())
-    }
-
-}
+// impl ModularArithmetic for Mpz {
+//
+//     // fn modinv(a: &Self, prime: &Self) -> Self {
+//     //     a.clone()
+//     // }
+//     //
+//     // fn modpow(x: &Self, e: &Self, prime: &Self) -> Self {
+//     //     x.clone()
+//     // }
+//     //
+//     // fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
+//     //     (a.clone(), a.clone(), a.clone())
+//     // }
+//
+// }
 
 impl ConvertFrom<Mpz> for u64 {
     fn _from(x: &Mpz) -> u64 {

@@ -40,3 +40,7 @@ harness = false
 [[bench]]
 name = "keygen"
 harness = false
+
+[[bench]]
+name = "arith"
+harness = false
