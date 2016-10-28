@@ -15,6 +15,19 @@ static N: &'static str = "446397596678771930935753654586920306936946621208913265
 pub fn bench_mul<I>(b: &mut Bencher)
 where
     for<'a, 'b> &'a I : Mul<&'b I, Output=I>,
+    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug
+{
+    let ref p: I = str::parse(P).unwrap();
+    let ref q: I = str::parse(Q).unwrap();
+
+    b.iter(|| {
+        let _ = p * q;
+    });
+}
+
+pub fn bench_mulrem<I>(b: &mut Bencher)
+where
+    for<'a, 'b> &'a I : Mul<&'b I, Output=I>,
     for<'b> I : Rem<&'b I, Output=I>,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug
 {
@@ -29,17 +42,20 @@ where
 
 #[cfg(feature="inclramp")]
 benchmark_group!(ramp,
-    self::bench_mul<RampBigInteger>
+    self::bench_mul<RampBigInteger>,
+    self::bench_mulrem<RampBigInteger>
 );
 
 #[cfg(feature="inclnum")]
 benchmark_group!(num,
-    self::bench_mul<NumBigInteger>
+    self::bench_mul<NumBigInteger>,
+    self::bench_mulrem<NumBigInteger>
 );
 
 #[cfg(feature="inclgmp")]
 benchmark_group!(gmp,
-    self::bench_mul<GmpBigInteger>
+    self::bench_mul<GmpBigInteger>,
+    self::bench_mulrem<GmpBigInteger>
 );
 
 pub fn dummy(_: &mut Bencher) {}
