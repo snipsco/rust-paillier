@@ -2,7 +2,7 @@
 
 extern crate gmp;
 
-use rand;
+// use rand;
 
 use super::traits::*;
 
@@ -11,12 +11,12 @@ use self::gmp::mpz::Mpz;
 // #[derive(Clone)]
 // pub struct GmpInteger(Mpz);
 
-impl Samplable for Mpz {
-    fn sample(upper: &Self) -> Self {
-        // TODO
-        Mpz::zero()
-    }
-}
+// impl Samplable for Mpz {
+//     fn sample(upper: &Self) -> Self {
+//         // TODO
+//         Mpz::zero()
+//     }
+// }
 
 impl NumberTests for Mpz {
     fn is_zero(me: &Self) -> bool { me.is_zero() }
@@ -42,13 +42,13 @@ pub use num_traits::{Zero, One};
 //
 // }
 
-impl ConvertFrom<Mpz> for u64 {
-    fn _from(x: &Mpz) -> u64 {
-        // TODO
-        0_u64
-        // Mpz::into(x.clone())
-        // u64::from(x)
-    }
-}
+// impl ConvertFrom<Mpz> for u64 {
+//     fn _from(x: &Mpz) -> u64 {
+//         // TODO
+//         0_u64
+//         // Mpz::into(x.clone())
+//         // u64::from(x)
+//     }
+// }
 
 pub type BigInteger = Mpz;
