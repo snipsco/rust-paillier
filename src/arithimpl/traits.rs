@@ -35,7 +35,7 @@ where
     I: Shr<usize, Output=I>,
 {
 
-    fn modinv(a: &Self, prime: &Self) -> Self {
+    default fn modinv(a: &Self, prime: &Self) -> Self {
         let r = a % prime;
         let ref d = if NumberTests::is_negative(&r) {
             let r = r.neg();
@@ -46,7 +46,7 @@ where
         (prime + d) % prime
     }
 
-    fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
+    default fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
         let mut base = base.clone();
         let mut exponent = exponent.clone();
         let mut result = Self::one();
@@ -61,7 +61,7 @@ where
         result
     }
 
-    fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
+    default fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
         if NumberTests::is_zero(b) {
             (a.clone(), Self::one(), Self::zero())
         } else {
@@ -71,6 +71,10 @@ where
             let new_t = s - &t * q;
             (d, t, new_t)
         }
+    }
+
+    default fn divmod(dividend: &Self, module: &Self) -> (Self, Self) {
+        (dividend / module, dividend % module)
     }
 
 }

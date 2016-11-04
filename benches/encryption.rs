@@ -17,7 +17,7 @@ pub fn bench_encryption<PHE>(b: &mut Bencher)
 where
     PHE : PartiallyHomomorphicScheme,
     PHE : TestKeyGeneration,
-    PHE::Plaintext : From<usize>
+    PHE::Plaintext : From<u64>
 {
     let (ek, _) = PHE::test_keypair();
     let m = PHE::Plaintext::from(10);
@@ -30,7 +30,7 @@ pub fn bench_decryption<PHE>(b: &mut Bencher)
 where
     PHE : PartiallyHomomorphicScheme,
     PHE : TestKeyGeneration,
-    PHE::Plaintext : From<usize>
+    PHE::Plaintext : From<u64>
 {
     let (ek, dk) = PHE::test_keypair();
     let m = PHE::Plaintext::from(10);
@@ -44,7 +44,7 @@ pub fn bench_rerandomisation<PHE>(b: &mut Bencher)
 where
     PHE : PartiallyHomomorphicScheme,
     PHE : TestKeyGeneration,
-    PHE::Plaintext : From<usize>
+    PHE::Plaintext : From<u64>
 {
     let (ek, _) = PHE::test_keypair();
     let m = PHE::Plaintext::from(10);
@@ -58,7 +58,7 @@ pub fn bench_addition<PHE>(b: &mut Bencher)
 where
     PHE : PartiallyHomomorphicScheme,
     PHE : TestKeyGeneration,
-    PHE::Plaintext : From<usize>
+    PHE::Plaintext : From<u64>
 {
     let (ek, _) = PHE::test_keypair();
 
@@ -77,7 +77,7 @@ pub fn bench_multiplication<PHE>(b: &mut Bencher)
 where
     PHE : PartiallyHomomorphicScheme,
     PHE : TestKeyGeneration,
-    PHE::Plaintext : From<usize>
+    PHE::Plaintext : From<u64>
 {
     let (ek, _) = PHE::test_keypair();
 
@@ -118,6 +118,17 @@ impl TestKeyGeneration for NumPlainPaillier {
     }
 }
 
+#[cfg(feature="inclgmp")]
+impl TestKeyGeneration for GmpPlainPaillier {
+    fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
+        let ref p = str::parse(P).unwrap();
+        let ref q = str::parse(Q).unwrap();
+        let ref n = p * q;
+        let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
+        let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
+        (ek, dk)
+    }
+}
 
 #[cfg(feature="inclramp")]
 benchmark_group!(ramp,
@@ -137,6 +148,15 @@ benchmark_group!(num,
     self::bench_multiplication<NumPlainPaillier>
 );
 
+#[cfg(feature="inclgmp")]
+benchmark_group!(gmp,
+    self::bench_encryption<GmpPlainPaillier>,
+    self::bench_decryption<GmpPlainPaillier>,
+    self::bench_rerandomisation<GmpPlainPaillier>,
+    self::bench_addition<GmpPlainPaillier>,
+    self::bench_multiplication<GmpPlainPaillier>
+);
+
 pub fn dummy(_: &mut Bencher) {}
 
 #[cfg(not(feature="inclramp"))]
@@ -145,4 +165,7 @@ benchmark_group!(ramp, dummy);
 #[cfg(not(feature="inclnum"))]
 benchmark_group!(num, dummy);
 
-benchmark_main!(ramp, num);
+#[cfg(not(feature="inclgmp"))]
+benchmark_group!(gmp, dummy);
+
+benchmark_main!(ramp, num, gmp);
