@@ -7,9 +7,17 @@ use self::gmp::mpz::Mpz;
 use self::gmp::rand::RandState;
 
 impl Samplable for Mpz {
-    fn sample(upper: &Self) -> Self {
+    fn sample_below(upper: &Self) -> Self {
         let mut r = RandState::new();
         r.urandom(upper)
+    }
+
+    fn sample(bitsize: usize) -> Self {
+        unimplemented!();
+    }
+
+    fn sample_range(lower: &Self, upper: &Self) -> Self {
+        unimplemented!();
     }
 }
 
@@ -34,6 +42,8 @@ impl ModularArithmetic for Mpz {
     fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
         a.gcdext(b)
     }
+
+    // TODO: native way of doing divmod (supported by GMP but not currently by Rust wrapper)
 
 }
 
