@@ -1,5 +1,5 @@
 
-use plain;
+use plain::{self, AbstractScheme};
 
 
 #[derive(Debug,Clone)]
@@ -85,7 +85,8 @@ where
     ComponentType: Shl<usize, Output=ComponentType>,
     for<'b> ComponentType: ConvertFrom<I>,
     // regarding BasePHE
-    // plain::Plaintext<I>: From<I>,
+    // plain::Plaintext<I>: From<usize>,
+    // I: From<usize>,
     I: From<ComponentType>,
     I: Shl<usize, Output=I>,
     I: ShlAssign<usize>,
@@ -117,14 +118,14 @@ where
             packed_plaintexts = packed_plaintexts << ek.component_size;
             packed_plaintexts = packed_plaintexts + I::from(plaintext.clone());
         }
-        let c: plain::Ciphertext<I> = plain::AbstractPlainPaillier::encrypt(
+        let c: plain::Ciphertext<I> = plain::Scheme::encrypt(
             &ek.underlying_ek,
             &plain::Plaintext(packed_plaintexts));
         Ciphertext(c)
     }
 
     pub fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<ComponentType> {
-        let mut packed_plaintext: I = plain::AbstractPlainPaillier::decrypt(&dk.underlying_dk, &c.0).0;
+        let mut packed_plaintext: I = plain::Scheme::decrypt(&dk.underlying_dk, &c.0).0;
         let raw_mask: ComponentType = ComponentType::one() << dk.component_size;
         let mask: I = I::from(raw_mask.clone());
         let mut result: Vec<ComponentType> = vec![];
@@ -139,18 +140,18 @@ where
     }
 
     pub fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, c2: &Ciphertext<I>) -> Ciphertext<I> {
-        let c: plain::Ciphertext<I> = plain::AbstractPlainPaillier::add(&ek.underlying_ek, &c1.0, &c2.0);
+        let c: plain::Ciphertext<I> = plain::Scheme::add(&ek.underlying_ek, &c1.0, &c2.0);
         Ciphertext(c)
     }
 
     pub fn mult(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, m2: &ComponentType) -> Ciphertext<I> {
         let scalar = plain::Plaintext(I::from(m2.clone()));
-        let c: plain::Ciphertext<I> = plain::AbstractPlainPaillier::mult(&ek.underlying_ek, &c1.0, &scalar);
+        let c: plain::Ciphertext<I> = plain::Scheme::mult(&ek.underlying_ek, &c1.0, &scalar);
         Ciphertext(c)
     }
 
     pub fn rerandomise(ek: &EncryptionKey<I>, c: &Ciphertext<I>) -> Ciphertext<I> {
-        let d: plain::Ciphertext<I> = plain::AbstractPlainPaillier::rerandomise(&ek.underlying_ek, &c.0);
+        let d: plain::Ciphertext<I> = plain::Scheme::rerandomise(&ek.underlying_ek, &c.0);
         Ciphertext(d)
     }
 

@@ -1,78 +1,88 @@
 #[macro_use]
 extern crate bencher;
 extern crate paillier;
+extern crate num_traits;
 
 use bencher::Bencher;
 use paillier::*;
+use paillier::plain::{Encode};
 
 
-pub fn bench_encryption<PHE>(b: &mut Bencher)
+pub fn bench_encryption<Scheme, I>(b: &mut Bencher)
 where
-    PHE : plain::AbstractPlainPaillier<I>,
-    I : From<u64>,
-    plain::AbstractPlainPaillier<I> : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme<I>,
+    Scheme : plain::Encode<usize, PlaintextType=I>,
+    Scheme : TestKeyGeneration<I>
 {
-    let (ek, _) = plain::AbstractPlainPaillier::test_keypair();
-    let m = plain::Plaintext::from(10);
+    let (ek, _) = Scheme::test_keypair();
+    let m = Scheme::encode(10);
     b.iter(|| {
-        let _ = plain::AbstractPlainPaillier::encrypt(&ek, &m);
+        let _ = Scheme::encrypt(&ek, &m);
     });
 }
 
-pub fn bench_decryption<I>(b: &mut Bencher)
+pub fn bench_decryption<Scheme, I>(b: &mut Bencher)
 where
-    I : From<u64>
+    Scheme : plain::AbstractScheme<I>,
+    Scheme : plain::Encode<usize, PlaintextType=I>,
+    Scheme : TestKeyGeneration<I>
 {
-    let (ek, dk) = plain::AbstractPlainPaillier::test_keypair();
-    let m = plain::Plaintext::from(10);
-    let c = plain::AbstractPlainPaillier::encrypt(&ek, &m);
+    let (ek, dk) = Scheme::test_keypair();
+    let m = Scheme::encode(10);
+    let c = Scheme::encrypt(&ek, &m);
     b.iter(|| {
-        let _ = plain::AbstractPlainPaillier::decrypt(&dk, &c);
+        let _ = Scheme::decrypt(&dk, &c);
     });
 }
 
-pub fn bench_rerandomisation<I>(b: &mut Bencher)
+pub fn bench_rerandomisation<Scheme, I>(b: &mut Bencher)
 where
-    I : From<u64>
+    Scheme : plain::AbstractScheme<I>,
+    Scheme : plain::Encode<usize, PlaintextType=I>,
+    Scheme : TestKeyGeneration<I>
 {
-    let (ek, _) = plain::AbstractPlainPaillier::test_keypair();
-    let m = plain::Plaintext::from(10);
-    let c = plain::AbstractPlainPaillier::encrypt(&ek, &m);
+    let (ek, _) = Scheme::test_keypair();
+    let m = Scheme::encode(10);
+    let c = Scheme::encrypt(&ek, &m);
     b.iter(|| {
-        let _ = plain::AbstractPlainPaillier::rerandomise(&ek, &c);
+        let _ = Scheme::rerandomise(&ek, &c);
     });
 }
 
-pub fn bench_addition<I>(b: &mut Bencher)
+pub fn bench_addition<Scheme, I>(b: &mut Bencher)
 where
-    I : From<u64>
+    Scheme : plain::AbstractScheme<I>,
+    Scheme : plain::Encode<usize, PlaintextType=I>,
+    Scheme : TestKeyGeneration<I>
 {
-    let (ek, _) = plain::AbstractPlainPaillier::test_keypair();
+    let (ek, _) = Scheme::test_keypair();
 
-    let m1 = plain::Plaintext::from(10);
-    let c1 = plain::AbstractPlainPaillier::encrypt(&ek, &m1);
+    let m1 = Scheme::encode(10_usize);
+    let c1 = Scheme::encrypt(&ek, &m1);
 
-    let m2 = plain::Plaintext::from(20);
-    let c2 = plain::AbstractPlainPaillier::encrypt(&ek, &m2);
+    let m2 = Scheme::encode(20);
+    let c2 = Scheme::encrypt(&ek, &m2);
 
     b.iter(|| {
-        let _ = plain::AbstractPlainPaillier::add(&ek, &c1, &c2);
+        let _ = Scheme::add(&ek, &c1, &c2);
     });
 }
 
-pub fn bench_multiplication<I>(b: &mut Bencher)
+pub fn bench_multiplication<Scheme, I>(b: &mut Bencher)
 where
-    I : From<u64>
+    Scheme : plain::AbstractScheme<I>,
+    Scheme : plain::Encode<usize, PlaintextType=I>,
+    Scheme : TestKeyGeneration<I>
 {
-    let (ek, _) = plain::AbstractPlainPaillier::test_keypair();
+    let (ek, _) = Scheme::test_keypair();
 
-    let m1 = plain::Plaintext::from(10);
-    let c1 = plain::AbstractPlainPaillier::encrypt(&ek, &m1);
+    let m1 = Scheme::encode(10);
+    let c1 = Scheme::encrypt(&ek, &m1);
 
-    let m2 = plain::Plaintext::from(20);
+    let m2 = Scheme::encode(20);
 
     b.iter(|| {
-        let _ = plain::AbstractPlainPaillier::mult(&ek, &c1, &m2);
+        let _ = Scheme::mult(&ek, &c1, &m2);
     });
 }
 
@@ -89,8 +99,25 @@ pub trait TestKeyGeneration<I>
     fn test_keypair() -> (plain::EncryptionKey<I>, plain::DecryptionKey<I>);
 }
 
-#[cfg(feature="inclramp")]
-impl <I> TestKeyGeneration<I> for plain::AbstractPlainPaillier<I> {
+use std::ops::{Add, Sub, Mul, Div, Rem};
+use num_traits::{One};
+use paillier::arithimpl::traits::ModularArithmetic;
+
+// #[cfg(feature="inclramp")]
+impl <I> TestKeyGeneration<I> for plain::Scheme<I>
+where
+    I: Clone,
+    I: One,
+    I: ModularArithmetic,
+    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
+    for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
+    for<'a, 'b> &'a I: Add<&'b I, Output=I>,
+                   I: Mul<Output=I>,
+    for<'a>    &'a I: Mul<I, Output=I>,
+    for<'a,'b> &'a I: Div<&'b I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>
+ {
     fn test_keypair() -> (plain::EncryptionKey<I>, plain::DecryptionKey<I>) {
         let ref p = str::parse(P).unwrap();
         let ref q = str::parse(Q).unwrap();
@@ -101,29 +128,29 @@ impl <I> TestKeyGeneration<I> for plain::AbstractPlainPaillier<I> {
     }
 }
 
-#[cfg(feature="inclnum")]
-impl NumPlainPaillier {
-    fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
-        let ref p = str::parse(P).unwrap();
-        let ref q = str::parse(Q).unwrap();
-        let ref n = p * q;
-        let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
-        let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
-        (ek, dk)
-    }
-}
-
-#[cfg(feature="inclgmp")]
-impl GmpPlainPaillier {
-    fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
-        let ref p = str::parse(P).unwrap();
-        let ref q = str::parse(Q).unwrap();
-        let ref n = p * q;
-        let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
-        let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
-        (ek, dk)
-    }
-}
+// #[cfg(feature="inclnum")]
+// impl NumPlainPaillier {
+//     fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
+//         let ref p = str::parse(P).unwrap();
+//         let ref q = str::parse(Q).unwrap();
+//         let ref n = p * q;
+//         let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
+//         let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
+//         (ek, dk)
+//     }
+// }
+//
+// #[cfg(feature="inclgmp")]
+// impl GmpPlainPaillier {
+//     fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
+//         let ref p = str::parse(P).unwrap();
+//         let ref q = str::parse(Q).unwrap();
+//         let ref n = p * q;
+//         let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
+//         let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
+//         (ek, dk)
+//     }
+// }
 
 #[cfg(feature="inclramp")]
 benchmark_group!(ramp,

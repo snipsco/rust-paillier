@@ -19,7 +19,7 @@ pub mod packed;
 mod rampinstance
 {
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
-    pub type RampPlainPaillier = ::plain::AbstractPlainPaillier<RampBigInteger>;
+    pub type RampPlainPaillier = ::plain::Scheme<RampBigInteger>;
     pub type RampPackedPaillier = ::packed::AbstractPackedPaillier<u64, RampBigInteger>;
 
     #[cfg(feature="defaultramp")]
@@ -41,7 +41,7 @@ pub use self::rampinstance::*;
 mod numinstance
 {
     pub use arithimpl::numimpl::BigInteger as NumBigInteger;
-    pub type NumPlainPaillier = ::plain::AbstractPlainPaillier<NumBigInteger>;
+    pub type NumPlainPaillier = ::plain::Scheme<NumBigInteger>;
     pub type NumPackedPaillier = ::packed::AbstractPackedPaillier<u64, NumBigInteger>;
 
     #[cfg(feature="defaultnum")]
@@ -63,7 +63,7 @@ pub use self::numinstance::*;
 mod gmpinstance
 {
     pub use arithimpl::gmpimpl::BigInteger as GmpBigInteger;
-    pub type GmpPlainPaillier = ::plain::AbstractPlainPaillier<GmpBigInteger>;
+    pub type GmpPlainPaillier = ::plain::Scheme<GmpBigInteger>;
     pub type GmpPackedPaillier = ::packed::AbstractPackedPaillier<u64, GmpBigInteger>;
 
     #[cfg(feature="defaultgmp")]
