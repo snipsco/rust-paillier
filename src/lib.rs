@@ -8,10 +8,10 @@ extern crate num_traits;
 
 pub mod arithimpl;
 mod phe;
-mod plain;
-mod packed;
+pub mod plain;
+pub mod packed;
 
-pub use phe::{KeyGeneration, PartiallyHomomorphicScheme};
+pub use phe::{KeyGeneration};
 
 
 /*************************
@@ -23,7 +23,7 @@ mod rampinstance
 {
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
     pub type RampPlainPaillier = ::plain::AbstractPlainPaillier<RampBigInteger>;
-    pub type RampPackedPaillier = ::packed::AbstractPackedPaillier<u64, RampPlainPaillier>;
+    pub type RampPackedPaillier = ::packed::AbstractPackedPaillier<u64, RampBigInteger>;
 
     #[cfg(feature="defaultramp")]
     pub type BigInteger = RampBigInteger;
@@ -45,7 +45,7 @@ mod numinstance
 {
     pub use arithimpl::numimpl::BigInteger as NumBigInteger;
     pub type NumPlainPaillier = ::plain::AbstractPlainPaillier<NumBigInteger>;
-    pub type NumPackedPaillier = ::packed::AbstractPackedPaillier<u64, NumPlainPaillier>;
+    pub type NumPackedPaillier = ::packed::AbstractPackedPaillier<u64, NumBigInteger>;
 
     #[cfg(feature="defaultnum")]
     pub type BigInteger = NumBigInteger;
@@ -67,7 +67,7 @@ mod gmpinstance
 {
     pub use arithimpl::gmpimpl::BigInteger as GmpBigInteger;
     pub type GmpPlainPaillier = ::plain::AbstractPlainPaillier<GmpBigInteger>;
-    pub type GmpPackedPaillier = ::packed::AbstractPackedPaillier<u64, GmpPlainPaillier>;
+    pub type GmpPackedPaillier = ::packed::AbstractPackedPaillier<u64, GmpBigInteger>;
 
     #[cfg(feature="defaultgmp")]
     pub type BigInteger = GmpBigInteger;

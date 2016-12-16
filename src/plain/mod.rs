@@ -1,27 +1,24 @@
 use std::ops::{Add, Sub, Mul, Div, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
-use phe::*;
-//use rand::OsRng;
-
 
 
 #[derive(Debug,Clone)]
-pub struct PlainEncryptionKey<I> {
+pub struct EncryptionKey<I> {
     pub n: I,  // the modulus
     nn: I,     // the modulus squared
     g: I,      // the generator, fixed at g = n + 1
 }
 
-impl<I> PlainEncryptionKey<I>
+impl<I> EncryptionKey<I>
 where
     I: Clone,
     I: One,
     for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
     for<'a, 'b> &'a I: Add<&'b I, Output=I>
 {
-    pub fn from(modulus: &I) -> PlainEncryptionKey<I> {
-        PlainEncryptionKey {
+    pub fn from(modulus: &I) -> EncryptionKey<I> {
+        EncryptionKey {
             n: modulus.clone(),
             nn: modulus * modulus,
             g: modulus + &I::one()
@@ -30,7 +27,7 @@ where
 }
 
 #[derive(Debug,Clone)]
-pub struct PlainDecryptionKey<I> {
+pub struct DecryptionKey<I> {
     pub p: I,  // first prime
     pub q: I,  // second prime
     pub n: I,  // the modulus (also in public key)
@@ -39,7 +36,7 @@ pub struct PlainDecryptionKey<I> {
     mu: I,     // fixed at lambda^{-1}
 }
 
-impl<I> PlainDecryptionKey<I>
+impl<I> DecryptionKey<I>
 where
     I: Clone,
     I: One,
@@ -52,13 +49,13 @@ where
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
 {
-    pub fn from(p: &I, q: &I) -> PlainDecryptionKey<I> {
+    pub fn from(p: &I, q: &I) -> DecryptionKey<I> {
         let ref one = I::one();
         let modulus = p * q;
         let nn = &modulus * &modulus;
         let lambda = (p - one) * (q - one);
         let mu = I::modinv(&lambda, &modulus);
-        PlainDecryptionKey {
+        DecryptionKey {
             p: p.clone(),
             q: q.clone(),
             n: modulus,
@@ -69,11 +66,39 @@ where
     }
 }
 
+
+#[derive(Debug,Clone,PartialEq)]
+pub struct Plaintext<I>(pub I);
+
+impl <I> From<usize> for Plaintext<I>
+where
+    I: From<usize>
+{
+    fn from(x: usize) -> Plaintext<I> {
+        Plaintext(I::from(x))
+    }
+}
+
+// impl <I> Add for PlainPlaintext<I>
+// where
+//     I: Add<Output=I>
+// {
+//     type Output=PlainPlaintext<I>;
+//     fn add(self: Self, y: Self) -> PlainPlaintext<I> {
+//         PlainPlaintext(self.0 + y.0)
+//     }
+// }
+
+
+#[derive(Debug,Clone)]
+pub struct Ciphertext<I>(pub I);
+
+
 pub struct AbstractPlainPaillier<I> {
     junk: ::std::marker::PhantomData<I>
 }
 
-impl <I> PartiallyHomomorphicScheme for AbstractPlainPaillier<I>
+impl <I> AbstractPlainPaillier<I>
 where
     // I: From<usize>,
     I: One,
@@ -91,32 +116,31 @@ where
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
 {
 
-    type Plaintext = I;
-    type Ciphertext = I;
-    type EncryptionKey = PlainEncryptionKey<I>;
-    type DecryptionKey = PlainDecryptionKey<I>;
-
-    fn encrypt(ek: &Self::EncryptionKey, m: &Self::Plaintext) -> Self::Ciphertext {
-        let ref gx = I::modpow(&ek.g, &m, &ek.nn);
-        Self::rerandomise(ek, gx)
+    pub fn encrypt(ek: &EncryptionKey<I>, m: &Plaintext<I>) -> Ciphertext<I> {
+        let gx = I::modpow(&ek.g, &m.0, &ek.nn);
+        Self::rerandomise(ek, &Ciphertext(gx))
     }
 
-    fn decrypt(dk: &Self::DecryptionKey, c: &Self::Ciphertext) -> Self::Plaintext {
-        let ref u = I::modpow(&c, &dk.lambda, &dk.nn);
-        ((u - I::one()) / &dk.n * &dk.mu) % &dk.n
+    pub fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
+        let u = I::modpow(&c.0, &dk.lambda, &dk.nn);
+        let m = ((&u - I::one()) / &dk.n * &dk.mu) % &dk.n;
+        Plaintext(m)
     }
 
-    fn add(ek: &Self::EncryptionKey, c1: &Self::Ciphertext, c2: &Self::Ciphertext) -> Self::Ciphertext {
-        (c1 * c2) % &ek.nn
+    pub fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, c2: &Ciphertext<I>) -> Ciphertext<I> {
+        let c = (&c1.0 * &c2.0) % &ek.nn;
+        Ciphertext(c)
     }
 
-    fn mult(ek: &Self::EncryptionKey, c1: &Self::Ciphertext, m2: &Self::Plaintext) -> Self::Ciphertext {
-        I::modpow(c1, m2, &ek.nn)
+    pub fn mult(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, m2: &Plaintext<I>) -> Ciphertext<I> {
+        let c = I::modpow(&c1.0, &m2.0, &ek.nn);
+        Ciphertext(c)
     }
 
-    fn rerandomise(ek: &Self::EncryptionKey, c: &Self::Ciphertext) -> Self::Ciphertext {
-        let ref r = I::sample_below(&ek.n);
-        (c * I::modpow(r, &ek.n, &ek.nn)) % &ek.nn
+    pub fn rerandomise(ek: &EncryptionKey<I>, c: &Ciphertext<I>) -> Ciphertext<I> {
+        let r = I::sample_below(&ek.n);
+        let d = (&c.0 * I::modpow(&r, &ek.n, &ek.nn)) % &ek.nn;
+        Ciphertext(d)
     }
 
 }
@@ -124,34 +148,33 @@ where
 #[cfg(test)]
 mod tests {
 
-    use phe::PartiallyHomomorphicScheme as PHE;
-    use PlainPaillier as Plain;
+    use ::BigInteger;
+    use super::*;
 
     #[cfg(feature="keygen")]
     use phe::KeyGeneration as KeyGen;
 
-    fn test_keypair() -> (<Plain as PHE>::EncryptionKey, <Plain as PHE>::DecryptionKey) {
+    fn test_keypair() -> (EncryptionKey<BigInteger>, DecryptionKey<BigInteger>) {
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
         let n = &p * &q;
-        let ek = <Plain as PHE>::EncryptionKey::from(&n);
-        let dk = <Plain as PHE>::DecryptionKey::from(&p, &q);
+        let ek = EncryptionKey::from(&n);
+        let dk = DecryptionKey::from(&p, &q);
         (ek, dk)
     }
 
-    #[cfg(feature="keygen")]
-    fn test_keypair_sized(bitsize: usize) -> (<Plain as PHE>::EncryptionKey, <Plain as PHE>::DecryptionKey) {
-        <Plain as KeyGen>::keypair(bitsize)
-    }
-
+    // #[cfg(feature="keygen")]
+    // fn test_keypair_sized(bitsize: usize) -> (<Plain as PHE>::EncryptionKey, <Plain as PHE>::DecryptionKey) {
+    //     <Plain as KeyGen>::keypair(bitsize)
+    // }
 
     #[cfg(feature="keygen")]
     #[test]
     fn test_correct_keygen() {
         let (ek, dk) = test_keypair_sized(2048);
-        let m = <Plain as PHE>::Plaintext::from(10);
-        let c = Plain::encrypt(&ek, &m);
-        let recovered_m = Plain::decrypt(&dk, &c);
+        let m = Plaintext::from(10);
+        let c = AbstractPlainPaillier::encrypt(&ek, &m);
+        let recovered_m = AbstractPlainPaillier::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -159,10 +182,10 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let m = <Plain as PHE>::Plaintext::from(10);
-        let c = Plain::encrypt(&ek, &m);
+        let m = Plaintext::from(10);
+        let c = AbstractPlainPaillier::encrypt(&ek, &m);
 
-        let recovered_m = Plain::decrypt(&dk, &c);
+        let recovered_m = AbstractPlainPaillier::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -170,27 +193,27 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let m1 = <Plain as PHE>::Plaintext::from(10);
-        let c1 = Plain::encrypt(&ek, &m1);
-        let m2 = <Plain as PHE>::Plaintext::from(20);
-        let c2 = Plain::encrypt(&ek, &m2);
+        let m1 = Plaintext::from(10);
+        let c1 = AbstractPlainPaillier::encrypt(&ek, &m1);
+        let m2 = Plaintext::from(20);
+        let c2 = AbstractPlainPaillier::encrypt(&ek, &m2);
 
-        let c = Plain::add(&ek, &c1, &c2);
-        let m = Plain::decrypt(&dk, &c);
-        assert_eq!(m, m1 + m2);
+        let c = AbstractPlainPaillier::add(&ek, &c1, &c2);
+        let m = AbstractPlainPaillier::decrypt(&dk, &c);
+        assert_eq!(m, Plaintext::from(30));
     }
 
     #[test]
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let m1 = <Plain as PHE>::Plaintext::from(10);
-        let c1 = Plain::encrypt(&ek, &m1);
-        let m2 = <Plain as PHE>::Plaintext::from(20);
+        let m1 = Plaintext::from(10);
+        let c1 = AbstractPlainPaillier::encrypt(&ek, &m1);
+        let m2 = Plaintext::from(20);
 
-        let c = Plain::mult(&ek, &c1, &m2);
-        let m = Plain::decrypt(&dk, &c);
-        assert_eq!(m, m1 * m2);
+        let c = AbstractPlainPaillier::mult(&ek, &c1, &m2);
+        let m = AbstractPlainPaillier::decrypt(&dk, &c);
+        assert_eq!(m, Plaintext::from(200));
     }
 
 }
@@ -232,6 +255,6 @@ where
         let ek = PlainEncryptionKey::from(&n);
         let dk = PlainDecryptionKey::from(&p, &q);
         (ek, dk)
-        
+
     }
 }

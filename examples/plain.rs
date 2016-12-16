@@ -1,9 +1,9 @@
 
 extern crate paillier;
 
-use paillier::PartiallyHomomorphicScheme as PHE;
 use paillier::KeyGeneration;
 use paillier::PlainPaillier;
+use paillier::plain;
 
 #[cfg(not(feature="keygen"))]
 fn main() {
@@ -15,7 +15,7 @@ fn main() {
     // let (ek, dk) = plain::generate_keypair(1024);
     let (ek, dk) = PlainPaillier::keypair(10); // TODO
 
-    let m1 = <PlainPaillier as PHE>::Plaintext::from(10);
+    let m1 = plain::Plaintext::from(10);
     // let m1 = PlainPaillier::Plaintext::from(10);
     let c1 = PlainPaillier::encrypt(&ek, &m1);
 
