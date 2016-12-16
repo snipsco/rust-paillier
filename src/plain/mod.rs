@@ -151,8 +151,8 @@ mod tests {
     use ::BigInteger;
     use super::*;
 
-    #[cfg(feature="keygen")]
-    use phe::KeyGeneration as KeyGen;
+    // #[cfg(feature="keygen")]
+    // use phe::KeyGeneration as KeyGen;
 
     fn test_keypair() -> (EncryptionKey<BigInteger>, DecryptionKey<BigInteger>) {
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
@@ -163,10 +163,10 @@ mod tests {
         (ek, dk)
     }
 
-    // #[cfg(feature="keygen")]
-    // fn test_keypair_sized(bitsize: usize) -> (<Plain as PHE>::EncryptionKey, <Plain as PHE>::DecryptionKey) {
-    //     <Plain as KeyGen>::keypair(bitsize)
-    // }
+    #[cfg(feature="keygen")]
+    fn test_keypair_sized(bitsize: usize) -> (EncryptionKey<BigInteger>, DecryptionKey<BigInteger>) {
+        AbstractPlainPaillier::keypair(bitsize)
+    }
 
     #[cfg(feature="keygen")]
     #[test]
@@ -222,7 +222,7 @@ mod tests {
 use arithimpl::primes::*;
 
 #[cfg(feature="keygen")]
-impl <I> KeyGeneration for AbstractPlainPaillier<I>
+impl <I> AbstractPlainPaillier<I>
 where
     I: From<u64>,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -244,17 +244,12 @@ where
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
 {
 
-    type EncryptionKey = PlainEncryptionKey<I>;
-    type DecryptionKey = PlainDecryptionKey<I>;
-
-    fn keypair(bit_length: usize) -> (Self::EncryptionKey, Self::DecryptionKey) {
-
+    pub fn keypair(bit_length: usize) -> (EncryptionKey<I>, DecryptionKey<I>) {
         let p = I::sample_prime(bit_length/2);
         let q = I::sample_prime(bit_length/2);
         let n = &p * &q;
-        let ek = PlainEncryptionKey::from(&n);
-        let dk = PlainDecryptionKey::from(&p, &q);
+        let ek = EncryptionKey::from(&n);
+        let dk = DecryptionKey::from(&p, &q);
         (ek, dk)
-
     }
 }

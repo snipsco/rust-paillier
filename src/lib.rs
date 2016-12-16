@@ -6,12 +6,9 @@ extern crate test;
 extern crate rand;
 extern crate num_traits;
 
-pub mod arithimpl;
-mod phe;
+mod arithimpl;
 pub mod plain;
 pub mod packed;
-
-pub use phe::{KeyGeneration};
 
 
 /*************************

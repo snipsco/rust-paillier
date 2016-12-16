@@ -1,7 +1,7 @@
 
 extern crate paillier;
 
-use paillier::KeyGeneration;
+// use paillier::KeyGeneration;
 use paillier::PlainPaillier;
 use paillier::plain;
 
@@ -40,6 +40,6 @@ fn main() {
 
     let m = PlainPaillier::decrypt(&dk, &c1);
     // let n = plain::decrypt(&dk, &d);
-    println!("decrypted total sum is {}", m);
+    println!("decrypted total sum is {}", m.0);
     // println!("... and after dividing {}", n);
 }
