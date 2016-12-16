@@ -1,8 +1,8 @@
 
 extern crate paillier;
 
-use paillier::{RampBigInteger};
-use paillier::plain::{self, AbstractScheme, Encode, KeyGeneration};
+use paillier::RampBigInteger;
+use paillier::plain::*;
 
 type MyScheme = plain::Scheme<RampBigInteger>;
 

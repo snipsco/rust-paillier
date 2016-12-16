@@ -1,6 +1,7 @@
 
 use plain;
 use plain::AbstractScheme as PlainAbstractScheme;
+use plain::KeyGeneration as PlainKeyGeneration;
 
 #[derive(Debug,Clone)]
 pub struct EncryptionKey<I> {
@@ -47,21 +48,39 @@ impl <I> DecryptionKey<I> {
     }
 }
 
+use std::marker::PhantomData;
 
 #[derive(Debug,Clone,PartialEq)]
-pub struct Plaintext<T>(pub Vec<T>);
+pub struct Plaintext<I, T> {
+    pub data: Vec<T>,
+    _phantom: PhantomData<I>
+}
 
-impl <T : Clone> From<T> for Plaintext<T> {
+impl <T, I> From<T> for Plaintext<I, T>
+where
+    I: From<T>,
+    T: Clone
+{
     fn from(x: T) -> Self {
-        Plaintext(vec![x.clone()])
+        Plaintext { data: vec![x.clone()], _phantom: PhantomData }
     }
 }
 
-impl <T : Clone> From<Vec<T>> for Plaintext<T> {
+impl <T, I> From<Vec<T>> for Plaintext<I, T>
+where
+    I : From<T>,
+    T : Clone,
+{
     fn from(x: Vec<T>) -> Self {
-        Plaintext(x.clone())
+        Plaintext { data: x.clone(), _phantom: PhantomData }
     }
 }
+
+// impl <T : Clone> From<[T]> for Plaintext<T> {
+//     fn from(x: [T]) -> Self {
+//         Plaintext(x.to_vec())
+//     }
+// }
 
 
 #[derive(Debug,Clone)]
@@ -72,6 +91,7 @@ use std::ops::{Sub, Mul, Div};
 use std::ops::{Add, Shl, ShlAssign, Shr, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
+use arithimpl::primes::*;
 
 pub struct Scheme<ComponentType, BigInteger> {
     junk: ::std::marker::PhantomData<(ComponentType, BigInteger)>
@@ -81,11 +101,28 @@ pub trait AbstractScheme
 {
     type ComponentType;
     type BigInteger;
-    fn encrypt(ek: &EncryptionKey<Self::BigInteger>, ms: &Plaintext<Self::ComponentType>) -> Ciphertext<Self::BigInteger>;
-    fn decrypt(dk: &DecryptionKey<Self::BigInteger>, c: &Ciphertext<Self::BigInteger>) -> Plaintext<Self::ComponentType>;
-    fn add(ek: &EncryptionKey<Self::BigInteger>, c1: &Ciphertext<Self::BigInteger>, c2: &Ciphertext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
-    fn mult(ek: &EncryptionKey<Self::BigInteger>, c1: &Ciphertext<Self::BigInteger>, m2: &Self::ComponentType) -> Ciphertext<Self::BigInteger>;
-    fn rerandomise(ek: &EncryptionKey<Self::BigInteger>, c: &Ciphertext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
+
+    fn encrypt( ek: &EncryptionKey<Self::BigInteger>,
+                ms: &Plaintext<Self::BigInteger, Self::ComponentType>)
+                -> Ciphertext<Self::BigInteger>;
+
+    fn decrypt( dk: &DecryptionKey<Self::BigInteger>,
+                c: &Ciphertext<Self::BigInteger>)
+                -> Plaintext<Self::BigInteger, Self::ComponentType>;
+
+    fn add( ek: &EncryptionKey<Self::BigInteger>,
+            c1: &Ciphertext<Self::BigInteger>,
+            c2: &Ciphertext<Self::BigInteger>)
+            -> Ciphertext<Self::BigInteger>;
+
+    fn mult(ek: &EncryptionKey<Self::BigInteger>,
+            c1: &Ciphertext<Self::BigInteger>,
+            m2: &Self::ComponentType)
+            -> Ciphertext<Self::BigInteger>;
+
+    fn rerandomise(ek: &EncryptionKey<Self::BigInteger>,
+                    c: &Ciphertext<Self::BigInteger>)
+                    -> Ciphertext<Self::BigInteger>;
 }
 
 impl <T, I> AbstractScheme for Scheme<T, I>
@@ -121,8 +158,8 @@ where
     type ComponentType = T;
     type BigInteger = I;
 
-    fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<T>) -> Ciphertext<I> {
-        let plaintexts: &Vec<T> = &ms.0;
+    fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I> {
+        let plaintexts: &Vec<T> = &ms.data;
         assert!(plaintexts.len() == ek.component_count);
         let mut packed_plaintexts: I = I::from(plaintexts[0].clone());
         for plaintext in &plaintexts[1..] {
@@ -135,7 +172,7 @@ where
         Ciphertext(c)
     }
 
-    fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<T> {
+    fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I, T> {
         let mut packed_plaintext: I = plain::Scheme::decrypt(&dk.underlying_dk, &c.0).0;
         let raw_mask: T = T::one() << dk.component_size;
         let mask: I = I::from(raw_mask.clone());
@@ -147,7 +184,7 @@ where
             packed_plaintext = &packed_plaintext >> dk.component_size;
         }
         result.reverse();
-        Plaintext(result)
+        Plaintext { data: result, _phantom: PhantomData }
     }
 
     fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, c2: &Ciphertext<I>) -> Ciphertext<I> {
@@ -169,22 +206,58 @@ where
 }
 
 
-// pub trait Encode<T>
-// {
-//     type BigInteger;
-//     fn encode(x: T) -> Plaintext<Self::BigInteger>;
-//     fn encode(x: [T]) -> Plaintext<Self::BigInteger>;
-// }
-//
-// impl <I, T> Encode<T> for Scheme<I>
-// where
-//     Plaintext<I> : From<T>
-// {
-//     type BigInteger = I;
-//     fn encode(x: T) -> Plaintext<I> {
-//         Plaintext::from(x)
-//     }
-// }
+pub trait Encode<T>
+{
+    type I;
+    fn encode(x: T) -> Plaintext<Self::I, T>;
+}
+
+impl <I, T> Encode<T> for Scheme<T, I>
+where
+    Plaintext<I, T> : From<T>,
+{
+    type I = I;
+    fn encode(x: T) -> Plaintext<I, T> {
+        Plaintext::from(x)
+    }
+}
+
+
+pub trait KeyGeneration<I>
+{
+    fn keypair(bit_length: usize, component_count: usize, component_size: usize) -> (EncryptionKey<I>, DecryptionKey<I>);
+}
+
+#[cfg(feature="keygen")]
+impl <T, I> KeyGeneration<I> for Scheme<T, I>
+where
+    I: From<u64>,
+    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
+    I: Clone,
+    I: Samplable,
+    I: ModularArithmetic,
+    I: One,
+    I: PrimeSampable,
+                   I: Mul<Output=I>,
+    for<'a>    &'a I: Mul<I, Output=I>,
+    for<'b>        I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Add<&'b I, Output=I>,
+    for<'a>    &'a I: Sub<I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    for<'b>        I: Div<&'b I, Output=I>,
+    for<'a,'b> &'a I: Div<&'b I, Output=I>,
+    for<'a>        I: Rem<&'a I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>
+{
+    fn keypair(bit_length: usize, component_count: usize, component_size: usize) -> (EncryptionKey<I>, DecryptionKey<I>) {
+        let (plain_ek, plain_dk) = plain::Scheme::keypair(bit_length);
+        let ek = EncryptionKey::from(plain_ek, component_count, component_size);
+        let dk = DecryptionKey::from(plain_dk, component_count, component_size);
+        (ek, dk)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

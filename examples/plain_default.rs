@@ -1,8 +1,8 @@
 
 extern crate paillier;
 
-use paillier::{PlainPaillier};
-use paillier::plain::{AbstractScheme, Encode, KeyGeneration};
+use paillier::PlainPaillier;
+use paillier::plain::*;
 
 #[cfg(not(feature="keygen"))]
 fn main() {
