@@ -9,7 +9,7 @@ use paillier::*;
 pub fn bench_encryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -22,7 +22,7 @@ where
 pub fn bench_decryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, dk) = Scheme::test_keypair();
@@ -36,7 +36,7 @@ where
 pub fn bench_rerandomisation<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -50,7 +50,7 @@ where
 pub fn bench_addition<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -69,7 +69,7 @@ where
 pub fn bench_multiplication<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -125,30 +125,6 @@ where
         (ek, dk)
     }
 }
-
-// #[cfg(feature="inclnum")]
-// impl NumPlainPaillier {
-//     fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
-//         let ref p = str::parse(P).unwrap();
-//         let ref q = str::parse(Q).unwrap();
-//         let ref n = p * q;
-//         let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
-//         let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
-//         (ek, dk)
-//     }
-// }
-//
-// #[cfg(feature="inclgmp")]
-// impl GmpPlainPaillier {
-//     fn test_keypair() -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
-//         let ref p = str::parse(P).unwrap();
-//         let ref q = str::parse(Q).unwrap();
-//         let ref n = p * q;
-//         let ek = <Self as PartiallyHomomorphicScheme>::EncryptionKey::from(n);
-//         let dk = <Self as PartiallyHomomorphicScheme>::DecryptionKey::from(p, q);
-//         (ek, dk)
-//     }
-// }
 
 #[cfg(feature="inclramp")]
 benchmark_group!(ramp,

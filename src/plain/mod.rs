@@ -13,8 +13,7 @@ pub struct EncryptionKey<I> {
 
 impl <I> EncryptionKey<I>
 where
-    I: Clone,
-    I: One,
+    I: One + Clone,
     for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
     for<'a, 'b> &'a I: Add<&'b I, Output=I>
 {
@@ -40,8 +39,7 @@ pub struct DecryptionKey<I> {
 
 impl <I> DecryptionKey<I>
 where
-    I: Clone,
-    I: One,
+    I: One + Clone,
     I: ModularArithmetic,
                    I: Mul<Output=I>,
     for<'a>    &'a I: Mul<I, Output=I>,
@@ -72,11 +70,12 @@ where
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I>(pub I);
 
-impl <I> From<usize> for Plaintext<I>
+impl <I, T> From<T> for Plaintext<I>
 where
-    I: From<usize>
+    T: Copy,  // marker to avoid infinite loop by excluding Plaintext
+    I: From<T>
 {
-    fn from(x: usize) -> Plaintext<I> {
+    fn from(x: T) -> Plaintext<I> {
         Plaintext(I::from(x))
     }
 }
@@ -94,16 +93,32 @@ pub struct Scheme<I> {
 pub trait AbstractScheme
 {
     type BigInteger;
-    fn encrypt(ek: &EncryptionKey<Self::BigInteger>, m: &Plaintext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
-    fn decrypt(dk: &DecryptionKey<Self::BigInteger>, c: &Ciphertext<Self::BigInteger>) -> Plaintext<Self::BigInteger>;
-    fn add(ek: &EncryptionKey<Self::BigInteger>, c1: &Ciphertext<Self::BigInteger>, c2: &Ciphertext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
-    fn mult(ek: &EncryptionKey<Self::BigInteger>, c1: &Ciphertext<Self::BigInteger>, m2: &Plaintext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
-    fn rerandomise(ek: &EncryptionKey<Self::BigInteger>, c: &Ciphertext<Self::BigInteger>) -> Ciphertext<Self::BigInteger>;
+
+    fn encrypt( ek: &EncryptionKey<Self::BigInteger>,
+                m: &Plaintext<Self::BigInteger>)
+                -> Ciphertext<Self::BigInteger>;
+
+    fn decrypt( dk: &DecryptionKey<Self::BigInteger>,
+                c: &Ciphertext<Self::BigInteger>)
+                -> Plaintext<Self::BigInteger>;
+
+    fn add( ek: &EncryptionKey<Self::BigInteger>,
+            c1: &Ciphertext<Self::BigInteger>,
+            c2: &Ciphertext<Self::BigInteger>)
+            -> Ciphertext<Self::BigInteger>;
+
+    fn mult(ek: &EncryptionKey<Self::BigInteger>,
+            c1: &Ciphertext<Self::BigInteger>,
+            m2: &Plaintext<Self::BigInteger>)
+            -> Ciphertext<Self::BigInteger>;
+
+    fn rerandomise(ek: &EncryptionKey<Self::BigInteger>,
+                    c: &Ciphertext<Self::BigInteger>)
+                    -> Ciphertext<Self::BigInteger>;
 }
 
 impl <I> AbstractScheme for Scheme<I>
 where
-    // I: From<usize>,
     I: One,
     I: Samplable,
     I: ModularArithmetic,
@@ -153,17 +168,34 @@ where
 
 pub trait Encode<T>
 {
-    type BigInteger;
-    fn encode(x: T) -> Plaintext<Self::BigInteger>;
+    type I;
+    fn encode(x: T) -> Plaintext<Self::I>;
 }
 
 impl <I, T> Encode<T> for Scheme<I>
 where
-    I : From<T>
+    Plaintext<I> : From<T>
 {
-    type BigInteger = I;
+    type I = I;
     fn encode(x: T) -> Plaintext<I> {
-        Plaintext(I::from(x))
+        Plaintext::from(x)
+    }
+}
+
+
+pub trait Decode<T>
+{
+    type I;
+    fn decode(x: Plaintext<Self::I>) -> T;
+}
+
+impl <I, T> Decode<T> for Scheme<I>
+where
+    Plaintext<I> : Into<T>
+{
+    type I = I;
+    fn decode(x: Plaintext<I>) -> T {
+        Plaintext::into(x)
     }
 }
 
