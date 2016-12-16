@@ -6,7 +6,7 @@ extern crate test;
 extern crate rand;
 extern crate num_traits;
 
-mod arithimpl;
+pub mod arithimpl;
 pub mod plain;
 pub mod packed;
 

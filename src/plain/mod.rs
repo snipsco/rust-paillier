@@ -145,6 +145,44 @@ where
 
 }
 
+
+#[cfg(feature="keygen")]
+use arithimpl::primes::*;
+
+#[cfg(feature="keygen")]
+impl <I> AbstractPlainPaillier<I>
+where
+    I: From<u64>,
+    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
+    I: Clone,
+    I: Samplable,
+    I: ModularArithmetic,
+    I: One,
+    I: PrimeSampable,
+                   I: Mul<Output=I>,
+    for<'a>    &'a I: Mul<I, Output=I>,
+    for<'b>        I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Add<&'b I, Output=I>,
+    for<'a>    &'a I: Sub<I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    for<'b>        I: Div<&'b I, Output=I>,
+    for<'a,'b> &'a I: Div<&'b I, Output=I>,
+    for<'a>        I: Rem<&'a I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>
+{
+
+    pub fn keypair(bit_length: usize) -> (EncryptionKey<I>, DecryptionKey<I>) {
+        let p = I::sample_prime(bit_length/2);
+        let q = I::sample_prime(bit_length/2);
+        let n = &p * &q;
+        let ek = EncryptionKey::from(&n);
+        let dk = DecryptionKey::from(&p, &q);
+        (ek, dk)
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
 
@@ -216,40 +254,4 @@ mod tests {
         assert_eq!(m, Plaintext::from(200));
     }
 
-}
-
-#[cfg(feature="keygen")]
-use arithimpl::primes::*;
-
-#[cfg(feature="keygen")]
-impl <I> AbstractPlainPaillier<I>
-where
-    I: From<u64>,
-    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
-    I: Clone,
-    I: Samplable,
-    I: ModularArithmetic,
-    I: One,
-    I: PrimeSampable,
-                   I: Mul<Output=I>,
-    for<'a>    &'a I: Mul<I, Output=I>,
-    for<'b>        I: Mul<&'b I, Output=I>,
-    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
-    for<'a,'b> &'a I: Add<&'b I, Output=I>,
-    for<'a>    &'a I: Sub<I, Output=I>,
-    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-    for<'b>        I: Div<&'b I, Output=I>,
-    for<'a,'b> &'a I: Div<&'b I, Output=I>,
-    for<'a>        I: Rem<&'a I, Output=I>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>
-{
-
-    pub fn keypair(bit_length: usize) -> (EncryptionKey<I>, DecryptionKey<I>) {
-        let p = I::sample_prime(bit_length/2);
-        let q = I::sample_prime(bit_length/2);
-        let n = &p * &q;
-        let ek = EncryptionKey::from(&n);
-        let dk = DecryptionKey::from(&p, &q);
-        (ek, dk)
-    }
 }
