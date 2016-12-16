@@ -5,14 +5,12 @@ extern crate num_traits;
 
 use bencher::Bencher;
 use paillier::*;
-use paillier::plain::{Encode};
 
-
-pub fn bench_encryption<Scheme, I>(b: &mut Bencher)
+pub fn bench_encryption<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme<I>,
-    Scheme : plain::Encode<usize, PlaintextType=I>,
-    Scheme : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme,
+    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
     let m = Scheme::encode(10);
@@ -21,11 +19,11 @@ where
     });
 }
 
-pub fn bench_decryption<Scheme, I>(b: &mut Bencher)
+pub fn bench_decryption<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme<I>,
-    Scheme : plain::Encode<usize, PlaintextType=I>,
-    Scheme : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme,
+    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, dk) = Scheme::test_keypair();
     let m = Scheme::encode(10);
@@ -35,11 +33,11 @@ where
     });
 }
 
-pub fn bench_rerandomisation<Scheme, I>(b: &mut Bencher)
+pub fn bench_rerandomisation<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme<I>,
-    Scheme : plain::Encode<usize, PlaintextType=I>,
-    Scheme : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme,
+    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
     let m = Scheme::encode(10);
@@ -49,11 +47,11 @@ where
     });
 }
 
-pub fn bench_addition<Scheme, I>(b: &mut Bencher)
+pub fn bench_addition<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme<I>,
-    Scheme : plain::Encode<usize, PlaintextType=I>,
-    Scheme : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme,
+    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
 
@@ -68,11 +66,11 @@ where
     });
 }
 
-pub fn bench_multiplication<Scheme, I>(b: &mut Bencher)
+pub fn bench_multiplication<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme<I>,
-    Scheme : plain::Encode<usize, PlaintextType=I>,
-    Scheme : TestKeyGeneration<I>
+    Scheme : plain::AbstractScheme,
+    Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
 

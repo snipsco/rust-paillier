@@ -3,7 +3,7 @@ extern crate paillier;
 
 use paillier::{PlainPaillier, BigInteger};
 // use paillier::plain::{self, KeyGeneration};
-use paillier::plain::{self, AbstractScheme, KeyGeneration};
+use paillier::plain::{self, AbstractScheme, KeyGeneration, Encode};
 // use paillier::plain::{self, AbstractScheme, KeyGeneration, EncryptionKey, DecryptionKey};
 
 #[cfg(not(feature="keygen"))]
@@ -15,7 +15,7 @@ fn main() {
 fn main() {
     let (ek, dk) = plain::Scheme::keypair(100);
 
-    let m1 = plain::Plaintext::from(10);
+    let m1 = plain::Scheme::encode(10);
     // let m1 = PlainPaillier::Plaintext::from(10);
     let c1 = plain::Scheme::encrypt(&ek, &m1);
 
