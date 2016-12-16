@@ -72,24 +72,14 @@ where
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I>(pub I);
 
-// impl <I> From<usize> for Plaintext<I>
-// where
-//     I: From<usize>
-// {
-//     fn from(x: usize) -> Plaintext<I> {
-//         Plaintext(I::from(x))
-//     }
-// }
-
-// impl <I> Add for PlainPlaintext<I>
-// where
-//     I: Add<Output=I>
-// {
-//     type Output=PlainPlaintext<I>;
-//     fn add(self: Self, y: Self) -> PlainPlaintext<I> {
-//         PlainPlaintext(self.0 + y.0)
-//     }
-// }
+impl <I> From<usize> for Plaintext<I>
+where
+    I: From<usize>
+{
+    fn from(x: usize) -> Plaintext<I> {
+        Plaintext(I::from(x))
+    }
+}
 
 
 #[derive(Debug,Clone)]
@@ -161,21 +151,21 @@ where
 }
 
 
-pub trait Encode<T>
-{
-    type BigInteger;
-    fn encode(x: T) -> Plaintext<Self::BigInteger>;
-}
-
-impl <I, T> Encode<T> for Scheme<I>
-where
-    I : From<T>
-{
-    type BigInteger = I;
-    fn encode(x: T) -> Plaintext<I> {
-        Plaintext(I::from(x))
-    }
-}
+// pub trait Encode<T>
+// {
+//     type BigInteger;
+//     fn encode(x: T) -> Plaintext<Self::BigInteger>;
+// }
+//
+// impl <I, T> Encode<T> for Scheme<I>
+// where
+//     I : From<T>
+// {
+//     type BigInteger = I;
+//     fn encode(x: T) -> Plaintext<I> {
+//         Plaintext(I::from(x))
+//     }
+// }
 
 
 pub trait KeyGeneration<I>
@@ -244,7 +234,7 @@ mod tests {
     fn test_correct_keygen() {
         let (ek, dk) = test_keypair_sized(2048);
 
-        let m = Scheme::encode(10);
+        let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);
 
         let recovered_m = Scheme::decrypt(&dk, &c);
@@ -255,7 +245,7 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let m = Scheme::encode(10);
+        let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);
 
         let recovered_m = Scheme::decrypt(&dk, &c);
@@ -266,27 +256,27 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let m1 = Scheme::encode(10);
+        let m1 = Plaintext::from(10);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = Scheme::encode(20);
+        let m2 = Plaintext::from(20);
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(m, Scheme::encode(30));
+        assert_eq!(m, Plaintext::from(30));
     }
 
     #[test]
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let m1 = Scheme::encode(10);
+        let m1 = Plaintext::from(10);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = Scheme::encode(20);
+        let m2 = Plaintext::from(20);
 
         let c = Scheme::mult(&ek, &c1, &m2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(m, Scheme::encode(200));
+        assert_eq!(m, Plaintext::from(200));
     }
 
 }
