@@ -151,21 +151,21 @@ where
 }
 
 
-// pub trait Encode<T>
-// {
-//     type BigInteger;
-//     fn encode(x: T) -> Plaintext<Self::BigInteger>;
-// }
-//
-// impl <I, T> Encode<T> for Scheme<I>
-// where
-//     I : From<T>
-// {
-//     type BigInteger = I;
-//     fn encode(x: T) -> Plaintext<I> {
-//         Plaintext(I::from(x))
-//     }
-// }
+pub trait Encode<T>
+{
+    type BigInteger;
+    fn encode(x: T) -> Plaintext<Self::BigInteger>;
+}
+
+impl <I, T> Encode<T> for Scheme<I>
+where
+    I : From<T>
+{
+    type BigInteger = I;
+    fn encode(x: T) -> Plaintext<I> {
+        Plaintext(I::from(x))
+    }
+}
 
 
 pub trait KeyGeneration<I>

@@ -55,7 +55,7 @@ where
 {
     let (ek, _) = Scheme::test_keypair();
 
-    let m1 = Scheme::encode(10_usize);
+    let m1 = Scheme::encode(10);
     let c1 = Scheme::encrypt(&ek, &m1);
 
     let m2 = Scheme::encode(20);
