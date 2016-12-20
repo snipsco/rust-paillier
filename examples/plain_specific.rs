@@ -4,7 +4,7 @@ extern crate paillier;
 use paillier::RampBigInteger;
 use paillier::plain::*;
 
-type MyScheme = plain::Scheme<RampBigInteger>;
+type MyScheme = Scheme<RampBigInteger>;
 
 #[cfg(not(feature="keygen"))]
 fn main() {

@@ -56,7 +56,7 @@ pub struct Plaintext<I, T> {
     _phantom: PhantomData<I>
 }
 
-impl <T, I> From<T> for Plaintext<I, T>
+impl <I, T> From<T> for Plaintext<I, T>
 where
     I: From<T>,
     T: Clone
@@ -66,7 +66,7 @@ where
     }
 }
 
-impl <T, I> From<Vec<T>> for Plaintext<I, T>
+impl <I, T> From<Vec<T>> for Plaintext<I, T>
 where
     I : From<T>,
     T : Clone,
@@ -93,14 +93,14 @@ use num_traits::{One};
 use arithimpl::traits::*;
 use arithimpl::primes::*;
 
-pub struct Scheme<ComponentType, BigInteger> {
-    junk: ::std::marker::PhantomData<(ComponentType, BigInteger)>
+pub struct Scheme<BigInteger, ComponentType> {
+    junk: ::std::marker::PhantomData<(BigInteger, ComponentType)>
 }
 
 pub trait AbstractScheme
 {
-    type ComponentType;
     type BigInteger;
+    type ComponentType;
 
     fn encrypt( ek: &EncryptionKey<Self::BigInteger>,
                 ms: &Plaintext<Self::BigInteger, Self::ComponentType>)
@@ -125,7 +125,7 @@ pub trait AbstractScheme
                     -> Ciphertext<Self::BigInteger>;
 }
 
-impl <T, I> AbstractScheme for Scheme<T, I>
+impl <I, T> AbstractScheme for Scheme<I, T>
 where
     // regarding ComponentType
             T: Clone,
@@ -155,8 +155,8 @@ where
     for<'a> &'a     I: Shr<usize, Output=I>,
 {
 
-    type ComponentType = T;
     type BigInteger = I;
+    type ComponentType = T;
 
     fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I> {
         let plaintexts: &Vec<T> = &ms.data;
@@ -212,7 +212,7 @@ pub trait Encode<T>
     fn encode(x: T) -> Plaintext<Self::I, T>;
 }
 
-impl <I, T> Encode<T> for Scheme<T, I>
+impl <I, T> Encode<T> for Scheme<I, T>
 where
     Plaintext<I, T> : From<T>,
 {
@@ -229,7 +229,7 @@ pub trait KeyGeneration<I>
 }
 
 #[cfg(feature="keygen")]
-impl <T, I> KeyGeneration<I> for Scheme<T, I>
+impl <I, T> KeyGeneration<I> for Scheme<I, T>
 where
     I: From<u64>,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -284,10 +284,10 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let m: Plaintext<u64> = Plaintext::from(vec![1, 2, 3]);
+        let m: Plaintext<BigInteger, u64> = Plaintext::from(vec![1, 2, 3]);
         let c: Ciphertext<BigInteger> = Scheme::encrypt(&ek, &m);
 
-        let recovered_m: Plaintext<u64> = Scheme::decrypt(&dk, &c);
+        let recovered_m: Plaintext<BigInteger, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -301,8 +301,8 @@ mod tests {
         let c2 = PackedPaillier::encrypt(&ek, &m2);
 
         let c = PackedPaillier::add(&ek, &c1, &c2);
-        let m = PackedPaillier::decrypt(&dk, &c);
-        assert_eq!(m.0, vec![2, 4, 6]);
+        let m: Plaintext<BigInteger, u64> = PackedPaillier::decrypt(&dk, &c);
+        assert_eq!(m.data, vec![2, 4, 6]);
     }
 
     #[test]
@@ -315,7 +315,7 @@ mod tests {
 
         let c = PackedPaillier::mult(&ek, &c1, &m2);
         let m = PackedPaillier::decrypt(&dk, &c);
-        assert_eq!(m.0, vec![4, 8, 12]);
+        assert_eq!(m.data, vec![4, 8, 12]);
     }
 
 }
