@@ -84,7 +84,10 @@ where
 
 
 #[derive(Debug,Clone)]
-pub struct Ciphertext<I>(plain::Ciphertext<I>);
+pub struct Ciphertext<I, T> {
+    pub data: plain::Ciphertext<I>,
+    _phantom: PhantomData<T>
+}
 
 
 use std::ops::{Sub, Mul, Div};
@@ -104,25 +107,25 @@ pub trait AbstractScheme
 
     fn encrypt( ek: &EncryptionKey<Self::BigInteger>,
                 ms: &Plaintext<Self::BigInteger, Self::ComponentType>)
-                -> Ciphertext<Self::BigInteger>;
+                -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     fn decrypt( dk: &DecryptionKey<Self::BigInteger>,
-                c: &Ciphertext<Self::BigInteger>)
+                c: &Ciphertext<Self::BigInteger, Self::ComponentType>)
                 -> Plaintext<Self::BigInteger, Self::ComponentType>;
 
     fn add( ek: &EncryptionKey<Self::BigInteger>,
-            c1: &Ciphertext<Self::BigInteger>,
-            c2: &Ciphertext<Self::BigInteger>)
-            -> Ciphertext<Self::BigInteger>;
+            c1: &Ciphertext<Self::BigInteger, Self::ComponentType>,
+            c2: &Ciphertext<Self::BigInteger, Self::ComponentType>)
+            -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     fn mult(ek: &EncryptionKey<Self::BigInteger>,
-            c1: &Ciphertext<Self::BigInteger>,
+            c1: &Ciphertext<Self::BigInteger, Self::ComponentType>,
             m2: &Self::ComponentType)
-            -> Ciphertext<Self::BigInteger>;
+            -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     fn rerandomise(ek: &EncryptionKey<Self::BigInteger>,
-                    c: &Ciphertext<Self::BigInteger>)
-                    -> Ciphertext<Self::BigInteger>;
+                    c: &Ciphertext<Self::BigInteger, Self::ComponentType>)
+                    -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 }
 
 impl <I, T> AbstractScheme for Scheme<I, T>
@@ -157,7 +160,7 @@ where
     type BigInteger = I;
     type ComponentType = T;
 
-    fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I> {
+    fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I, T> {
         let plaintexts: &Vec<T> = &ms.data;
         assert!(plaintexts.len() == ek.component_count);
         let mut packed_plaintexts: I = I::from(plaintexts[0].clone());
@@ -168,11 +171,11 @@ where
         let c: plain::Ciphertext<I> = plain::Scheme::encrypt(
             &ek.underlying_ek,
             &plain::Plaintext(packed_plaintexts));
-        Ciphertext(c)
+        Ciphertext { data: c, _phantom: PhantomData }
     }
 
-    fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I, T> {
-        let mut packed_plaintext: I = plain::Scheme::decrypt(&dk.underlying_dk, &c.0).0;
+    fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
+        let mut packed_plaintext: I = plain::Scheme::decrypt(&dk.underlying_dk, &c.data).0;
         let raw_mask: T = T::one() << dk.component_size;
         let mask: I = I::from(raw_mask.clone());
         let mut result: Vec<T> = vec![];
@@ -186,20 +189,20 @@ where
         Plaintext { data: result, _phantom: PhantomData }
     }
 
-    fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, c2: &Ciphertext<I>) -> Ciphertext<I> {
-        let c: plain::Ciphertext<I> = plain::Scheme::add(&ek.underlying_ek, &c1.0, &c2.0);
-        Ciphertext(c)
+    fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I, T>, c2: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        let c: plain::Ciphertext<I> = plain::Scheme::add(&ek.underlying_ek, &c1.data, &c2.data);
+        Ciphertext { data: c, _phantom: PhantomData }
     }
 
-    fn mult(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, m2: &T) -> Ciphertext<I> {
+    fn mult(ek: &EncryptionKey<I>, c1: &Ciphertext<I, T>, m2: &T) -> Ciphertext<I, T> {
         let scalar = plain::Plaintext(I::from(m2.clone()));
-        let c: plain::Ciphertext<I> = plain::Scheme::mult(&ek.underlying_ek, &c1.0, &scalar);
-        Ciphertext(c)
+        let c: plain::Ciphertext<I> = plain::Scheme::mult(&ek.underlying_ek, &c1.data, &scalar);
+        Ciphertext { data: c, _phantom: PhantomData }
     }
 
-    fn rerandomise(ek: &EncryptionKey<I>, c: &Ciphertext<I>) -> Ciphertext<I> {
-        let d: plain::Ciphertext<I> = plain::Scheme::rerandomise(&ek.underlying_ek, &c.0);
-        Ciphertext(d)
+    fn rerandomise(ek: &EncryptionKey<I>, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        let d: plain::Ciphertext<I> = plain::Scheme::rerandomise(&ek.underlying_ek, &c.data);
+        Ciphertext { data: d, _phantom: PhantomData }
     }
 
 }
@@ -284,7 +287,7 @@ mod tests {
         let (ek, dk) = test_keypair();
 
         let m: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
-        let c: Ciphertext<I> = Scheme::encrypt(&ek, &m);
+        let c: Ciphertext<I, u64> = Scheme::encrypt(&ek, &m);
 
         let recovered_m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
@@ -300,7 +303,7 @@ mod tests {
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = <Scheme<I, u64> as AbstractScheme>::add(&ek, &c1, &c2);
-        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
+        let m = Scheme::decrypt(&dk, &c);
         assert_eq!(m.data, vec![2, 4, 6]);
     }
 
@@ -310,10 +313,10 @@ mod tests {
 
         let m1: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2: u64 = 4;
+        let m2 = 4;
 
         let c = Scheme::mult(&ek, &c1, &m2);
-        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
+        let m = Scheme::decrypt(&dk, &c);
         assert_eq!(m.data, vec![4, 8, 12]);
     }
 
