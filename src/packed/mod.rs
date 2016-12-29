@@ -258,21 +258,21 @@ where
 }
 
 
+bigint!(I,
 #[cfg(test)]
 mod tests {
 
-    use ::{BigInteger, PackedPaillier};
-    use ::plain;
-    use super::*;
+    use super::I;
+    use ::packed::*;
 
-    fn test_keypair() -> (EncryptionKey<BigInteger>, DecryptionKey<BigInteger>) {
+    fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>) {
         //1024 bits prime
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
 
         let n = &p * &q;
-        let plain_ek = plain::EncryptionKey::from(&n);
-        let plain_dk = plain::DecryptionKey::from(&p, &q);
+        let plain_ek = ::plain::EncryptionKey::from(&n);
+        let plain_dk = ::plain::DecryptionKey::from(&p, &q);
 
         let ek = EncryptionKey::from(plain_ek, 3, 10);
         let dk = DecryptionKey::from(plain_dk, 3, 10);
@@ -283,10 +283,10 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let m: Plaintext<BigInteger, u64> = Plaintext::from(vec![1, 2, 3]);
-        let c: Ciphertext<BigInteger> = Scheme::encrypt(&ek, &m);
+        let m: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let c: Ciphertext<I> = Scheme::encrypt(&ek, &m);
 
-        let recovered_m: Plaintext<BigInteger, u64> = Scheme::decrypt(&dk, &c);
+        let recovered_m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -294,13 +294,13 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let m1 = Plaintext::from(vec![1, 2, 3]);
-        let c1 = PackedPaillier::encrypt(&ek, &m1);
-        let m2 = Plaintext::from(vec![1, 2, 3]);
-        let c2 = PackedPaillier::encrypt(&ek, &m2);
+        let m1: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let c1 = Scheme::encrypt(&ek, &m1);
+        let m2: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let c2 = Scheme::encrypt(&ek, &m2);
 
-        let c = PackedPaillier::add(&ek, &c1, &c2);
-        let m: Plaintext<BigInteger, u64> = PackedPaillier::decrypt(&dk, &c);
+        let c = <Scheme<I, u64> as AbstractScheme>::add(&ek, &c1, &c2);
+        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(m.data, vec![2, 4, 6]);
     }
 
@@ -308,13 +308,13 @@ mod tests {
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let m1 = Plaintext::from(vec![1, 2, 3]);
-        let c1 = PackedPaillier::encrypt(&ek, &m1);
-        let m2 = 4;
+        let m1: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let c1 = Scheme::encrypt(&ek, &m1);
+        let m2: u64 = 4;
 
-        let c = PackedPaillier::mult(&ek, &c1, &m2);
-        let m = PackedPaillier::decrypt(&dk, &c);
+        let c = Scheme::mult(&ek, &c1, &m2);
+        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(m.data, vec![4, 8, 12]);
     }
 
-}
+});

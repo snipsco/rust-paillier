@@ -6,6 +6,30 @@ extern crate test;
 extern crate rand;
 extern crate num_traits;
 
+macro_rules! bigint {
+    ( $t:ident, $body:item ) => {
+
+        #[cfg(feature="inclramp")]
+        mod ramp {
+            type $t = ::RampBigInteger;
+            $body
+        }
+
+        #[cfg(feature="inclgmp")]
+        mod gmp {
+            type $t = ::GmpBigInteger;
+            $body
+        }
+
+        #[cfg(feature="inclnum")]
+        mod num {
+            type $t = ::NumBigInteger;
+            $body
+        }
+
+    };
+}
+
 pub mod arithimpl;
 pub mod plain;
 pub mod packed;
