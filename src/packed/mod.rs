@@ -1,6 +1,8 @@
 
 use plain;
 use plain::AbstractScheme as PlainAbstractScheme;
+
+#[cfg(feature="keygen")]
 use plain::KeyGeneration as PlainKeyGeneration;
 
 #[derive(Debug,Clone)]
@@ -94,6 +96,8 @@ use std::ops::{Sub, Mul, Div};
 use std::ops::{Add, Shl, Shr, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
+
+#[cfg(feature="keygen")]
 use arithimpl::primes::*;
 
 pub struct Scheme<BigInteger, ComponentType> {
