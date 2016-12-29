@@ -88,7 +88,7 @@ pub struct Ciphertext<I>(plain::Ciphertext<I>);
 
 
 use std::ops::{Sub, Mul, Div};
-use std::ops::{Add, Shl, ShlAssign, Shr, Rem};
+use std::ops::{Add, Shl, Shr, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
 use arithimpl::primes::*;
@@ -150,7 +150,6 @@ where
     for<'a>         I: Rem<&'a I, Output=I>,
     for<'a,'b> &'a  I: Rem<&'b I, Output=I>,
                     I: Shl<usize, Output=I>,
-                    I: ShlAssign<usize>,
                     I: Shr<usize, Output=I>,
     for<'a> &'a     I: Shr<usize, Output=I>,
 {

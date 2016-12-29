@@ -9,7 +9,7 @@ use paillier::*;
 pub fn bench_encryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -22,7 +22,7 @@ where
 pub fn bench_decryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, dk) = Scheme::test_keypair();
@@ -36,7 +36,7 @@ where
 pub fn bench_rerandomisation<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -50,7 +50,7 @@ where
 pub fn bench_addition<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -69,7 +69,7 @@ where
 pub fn bench_multiplication<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
-    Scheme : plain::Encode<usize, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();

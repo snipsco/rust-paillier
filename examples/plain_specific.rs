@@ -1,10 +1,10 @@
 
 extern crate paillier;
 
-use paillier::RampBigInteger;
+use paillier::BigInteger;  // could be a specific type such as RampBigInteger as well
 use paillier::plain::*;
 
-type MyScheme = Scheme<RampBigInteger>;
+type MyScheme = Scheme<BigInteger>;
 
 #[cfg(not(feature="keygen"))]
 fn main() {
