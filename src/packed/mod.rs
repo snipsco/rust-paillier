@@ -287,9 +287,9 @@ mod tests {
         let (ek, dk) = test_keypair();
 
         let m: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
-        let c: Ciphertext<I, u64> = Scheme::encrypt(&ek, &m);
+        let c = Scheme::encrypt(&ek, &m);
 
-        let recovered_m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
+        let recovered_m = Scheme::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -297,13 +297,13 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let m1: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let m1 = Plaintext::from(vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let m2 = Plaintext::from(vec![1, 2, 3]);
         let c2 = Scheme::encrypt(&ek, &m2);
 
-        let c = <Scheme<I, u64> as AbstractScheme>::add(&ek, &c1, &c2);
-        let m = Scheme::decrypt(&dk, &c);
+        let c = Scheme::add(&ek, &c1, &c2);
+        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
         assert_eq!(m.data, vec![2, 4, 6]);
     }
 
