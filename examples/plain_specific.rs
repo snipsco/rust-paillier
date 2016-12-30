@@ -1,11 +1,6 @@
 
 extern crate paillier;
 
-use paillier::BigInteger;  // could be a specific type such as RampBigInteger as well
-use paillier::plain::*;
-
-type MyScheme = Scheme<BigInteger>;
-
 #[cfg(not(feature="keygen"))]
 fn main() {
     println!("*** please run with 'keygen' feature ***")
@@ -13,6 +8,10 @@ fn main() {
 
 #[cfg(feature="keygen")]
 fn main() {
+
+    use paillier::BigInteger;  // could be a specific type such as RampBigInteger as well
+    use paillier::plain::*;
+    type MyScheme = Scheme<BigInteger>;
 
     let (ek, dk) = MyScheme::keypair(100);
 

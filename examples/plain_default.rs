@@ -1,9 +1,6 @@
 
 extern crate paillier;
 
-use paillier::PlainPaillier;
-use paillier::plain::*;
-
 #[cfg(not(feature="keygen"))]
 fn main() {
     println!("*** please run with 'keygen' feature ***")
@@ -11,6 +8,10 @@ fn main() {
 
 #[cfg(feature="keygen")]
 fn main() {
+
+    use paillier::PlainPaillier;
+    use paillier::plain::*;
+
     let (ek, dk) = PlainPaillier::keypair(100);
 
     let m1 = PlainPaillier::encode(10);

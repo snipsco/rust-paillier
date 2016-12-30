@@ -1,9 +1,6 @@
 
 extern crate paillier;
 
-use paillier::PackedPaillier;
-use paillier::packed::*;
-
 #[cfg(not(feature="keygen"))]
 fn main() {
     println!("*** please run with 'keygen' feature ***")
@@ -11,6 +8,10 @@ fn main() {
 
 #[cfg(feature="keygen")]
 fn main() {
+
+    use paillier::PackedPaillier;
+    use paillier::packed::*;
+
     let (ek, dk) = PackedPaillier::keypair(100, 3, 10);
 
     let m1 = Plaintext::from(vec![1, 2, 3]);
