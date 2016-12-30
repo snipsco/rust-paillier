@@ -118,48 +118,48 @@ pub struct Scheme<BigInteger, ComponentType> {
 pub trait AbstractScheme
 {
     /// Underlying arbitrary precision arithmetic type.
-    type BigInt;
+    type BigInteger;
 
     /// Type of packed values.
     type ComponentType;
 
     /// Encrypt plaintext `m` under key `ek` into a ciphertext.
     fn encrypt(
-        ek: &EncryptionKey<Self::BigInt>,
-        ms: &Plaintext<Self::BigInt, Self::ComponentType>)
-        -> Ciphertext<Self::BigInt, Self::ComponentType>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        ms: &Plaintext<Self::BigInteger, Self::ComponentType>)
+        -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     /// Decrypt ciphertext `c` using key `dk` into a plaintext.
     fn decrypt(
-        dk: &DecryptionKey<Self::BigInt>,
-        c: &Ciphertext<Self::BigInt, Self::ComponentType>)
-        -> Plaintext<Self::BigInt, Self::ComponentType>;
+        dk: &DecryptionKey<Self::BigInteger>,
+        c: &Ciphertext<Self::BigInteger, Self::ComponentType>)
+        -> Plaintext<Self::BigInteger, Self::ComponentType>;
 
     /// Homomorphically combine ciphertexts `c1` and `c2` to obtain a ciphertext containing
     /// the component-wise sum of the two underlying plaintexts. Correct as long as the absolute
     /// values do not exceed the upper bound specified as part of the public key.
     fn add(
-        ek: &EncryptionKey<Self::BigInt>,
-        c1: &Ciphertext<Self::BigInt, Self::ComponentType>,
-        c2: &Ciphertext<Self::BigInt, Self::ComponentType>)
-        -> Ciphertext<Self::BigInt, Self::ComponentType>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        c1: &Ciphertext<Self::BigInteger, Self::ComponentType>,
+        c2: &Ciphertext<Self::BigInteger, Self::ComponentType>)
+        -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     /// Homomorphically combine ciphertext `c1` and scalar `m2` to obtain a ciphertext
     /// containing the component-wise multiplication of the underlying plaintext and the scalar.
     /// Correct as long as the absolute values do not exceed the upper bound specified as
     /// part of the public key.
     fn mult(
-        ek: &EncryptionKey<Self::BigInt>,
-        c1: &Ciphertext<Self::BigInt, Self::ComponentType>,
+        ek: &EncryptionKey<Self::BigInteger>,
+        c1: &Ciphertext<Self::BigInteger, Self::ComponentType>,
         m2: &Self::ComponentType)
-        -> Ciphertext<Self::BigInt, Self::ComponentType>;
+        -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 
     /// Rerandomise ciphertext `c` to hide any history of which homomorphic operations were
     /// used to compute it, making it look exactly like a fresh encryption of the same plaintext.
     fn rerandomise(
-        ek: &EncryptionKey<Self::BigInt>,
-        c: &Ciphertext<Self::BigInt, Self::ComponentType>)
-        -> Ciphertext<Self::BigInt, Self::ComponentType>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        c: &Ciphertext<Self::BigInteger, Self::ComponentType>)
+        -> Ciphertext<Self::BigInteger, Self::ComponentType>;
 }
 
 impl <I, T> AbstractScheme for Scheme<I, T>
@@ -191,7 +191,7 @@ where
     for<'a> &'a     I: Shr<usize, Output=I>,
 {
 
-    type BigInt = I;
+    type BigInteger = I;
     type ComponentType = T;
 
     fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I, T> {

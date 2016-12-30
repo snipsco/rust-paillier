@@ -95,42 +95,42 @@ pub struct Scheme<I> {
 pub trait AbstractScheme
 {
     /// Underlying arbitrary precision arithmetic type.
-    type BigInt;
+    type BigInteger;
 
     /// Encrypt plaintext `m` under key `ek` into a ciphertext.
     fn encrypt(
-        ek: &EncryptionKey<Self::BigInt>,
-        m: &Plaintext<Self::BigInt>)
-        -> Ciphertext<Self::BigInt>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        m: &Plaintext<Self::BigInteger>)
+        -> Ciphertext<Self::BigInteger>;
 
     /// Decrypt ciphertext `c` using key `dk` into a plaintext.
     fn decrypt(
-        dk: &DecryptionKey<Self::BigInt>,
-        c: &Ciphertext<Self::BigInt>)
-        -> Plaintext<Self::BigInt>;
+        dk: &DecryptionKey<Self::BigInteger>,
+        c: &Ciphertext<Self::BigInteger>)
+        -> Plaintext<Self::BigInteger>;
 
     /// Homomorphically combine ciphertexts `c1` and `c2` to obtain a ciphertext containing
     /// the sum of the two underlying plaintexts, reduced modulus `n` from `ek`.
     fn add(
-        ek: &EncryptionKey<Self::BigInt>,
-        c1: &Ciphertext<Self::BigInt>,
-        c2: &Ciphertext<Self::BigInt>)
-        -> Ciphertext<Self::BigInt>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        c1: &Ciphertext<Self::BigInteger>,
+        c2: &Ciphertext<Self::BigInteger>)
+        -> Ciphertext<Self::BigInteger>;
 
     /// Homomorphically combine ciphertext `c1` and plaintext `m2` to obtain a ciphertext
     /// containing the multiplication of the (underlying) plaintexts, reduced modulus `n` from `ek`.
     fn mult(
-        ek: &EncryptionKey<Self::BigInt>,
-        c1: &Ciphertext<Self::BigInt>,
-        m2: &Plaintext<Self::BigInt>)
-        -> Ciphertext<Self::BigInt>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        c1: &Ciphertext<Self::BigInteger>,
+        m2: &Plaintext<Self::BigInteger>)
+        -> Ciphertext<Self::BigInteger>;
 
     /// Rerandomise ciphertext `c` to hide any history of which homomorphic operations were
     /// used to compute it, making it look exactly like a fresh encryption of the same plaintext.
     fn rerandomise(
-        ek: &EncryptionKey<Self::BigInt>,
-        c: &Ciphertext<Self::BigInt>)
-        -> Ciphertext<Self::BigInt>;
+        ek: &EncryptionKey<Self::BigInteger>,
+        c: &Ciphertext<Self::BigInteger>)
+        -> Ciphertext<Self::BigInteger>;
 }
 
 impl <I> AbstractScheme for Scheme<I>
@@ -150,7 +150,7 @@ where
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
 {
 
-    type BigInt = I;
+    type BigInteger = I;
 
     fn encrypt(ek: &EncryptionKey<I>, m: &Plaintext<I>) -> Ciphertext<I> {
         let gx = I::modpow(&ek.g, &m.0, &ek.nn);

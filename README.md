@@ -12,31 +12,31 @@ The library exposes the scheme operations through two traits and implementations
 pub trait AbstractScheme {
 
     fn encrypt(
-      ek: &EncryptionKey<Self::BigInt>,
-       m: &Plaintext<Self::BigInt>)
-       -> Ciphertext<Self::BigInt>;
+      ek: &EncryptionKey<Self::BigInteger>,
+       m: &Plaintext<Self::BigInteger>)
+       -> Ciphertext<Self::BigInteger>;
 
     fn decrypt(
-      dk: &DecryptionKey<Self::BigInt>,
-       c: &Ciphertext<Self::BigInt>)
-       -> Plaintext<Self::BigInt>;
+      dk: &DecryptionKey<Self::BigInteger>,
+       c: &Ciphertext<Self::BigInteger>)
+       -> Plaintext<Self::BigInteger>;
 
     fn add(
-      ek: &EncryptionKey<Self::BigInt>,
-      c1: &Ciphertext<Self::BigInt>,
-      c2: &Ciphertext<Self::BigInt>)
-       -> Ciphertext<Self::BigInt>;
+      ek: &EncryptionKey<Self::BigInteger>,
+      c1: &Ciphertext<Self::BigInteger>,
+      c2: &Ciphertext<Self::BigInteger>)
+       -> Ciphertext<Self::BigInteger>;
 
     fn mult(
-      ek: &EncryptionKey<Self::BigInt>,
-      c1: &Ciphertext<Self::BigInt>,
-      m2: &Plaintext<Self::BigInt>)
-       -> Ciphertext<Self::BigInt>;
+      ek: &EncryptionKey<Self::BigInteger>,
+      c1: &Ciphertext<Self::BigInteger>,
+      m2: &Plaintext<Self::BigInteger>)
+       -> Ciphertext<Self::BigInteger>;
 
     fn rerandomise(
-      ek: &EncryptionKey<Self::BigInt>,
-       c: &Ciphertext<Self::BigInt>)
-       -> Ciphertext<Self::BigInt>;
+      ek: &EncryptionKey<Self::BigInteger>,
+       c: &Ciphertext<Self::BigInteger>)
+       -> Ciphertext<Self::BigInteger>;
 
 }
 ```
