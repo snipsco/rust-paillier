@@ -169,7 +169,7 @@ where
             T: One,
             T: Shl<usize, Output=T>,
     for<'b> T: ConvertFrom<I>,
-    // regarding I
+    // regarding BigInteger
     I: From<T>,
     I: One,
     I: Samplable,
