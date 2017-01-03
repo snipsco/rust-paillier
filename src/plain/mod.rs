@@ -10,20 +10,17 @@ use arithimpl::traits::*;
 pub struct EncryptionKey<I> {
     pub n: I,  // the modulus
     nn: I,     // the modulus squared
-    g: I,      // the generator, fixed at g = n + 1
 }
 
 impl <I> EncryptionKey<I>
 where
-    I: One + Clone,
-    for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
-    for<'a, 'b> &'a I: Add<&'b I, Output=I>
+    I: Clone,
+    for<'a, 'b> &'a I: Mul<&'b I, Output=I>
 {
     pub fn from(modulus: &I) -> EncryptionKey<I> {
         EncryptionKey {
             n: modulus.clone(),
-            nn: modulus * modulus,
-            g: modulus + &I::one()
+            nn: modulus * modulus
         }
     }
 }
@@ -153,8 +150,7 @@ where
     type BigInteger = I;
 
     fn encrypt(ek: &EncryptionKey<I>, m: &Plaintext<I>) -> Ciphertext<I> {
-        // let gx = I::modpow(&ek.g, &m.0, &ek.nn);
-        // assume here that g = n+1
+        // here we assume that g = n+1
         let nm = &m.0 * &ek.n;
         let gx = (&nm + &I::one()) % &ek.nn;
         Self::rerandomise(ek, &Ciphertext(gx))
@@ -182,6 +178,137 @@ where
         Ciphertext(d)
     }
 
+}
+
+
+
+fn l<I>(u: &I, n: &I) -> I
+where
+    I: One,
+    for<'a>    &'a I: Sub<I, Output=I>,
+    for<'b>        I: Div<&'b I, Output=I>,
+{
+    (u - I::one()) / n
+}
+
+fn h<I>(p: &I, pp: &I, n: &I) -> I
+where
+    I: One,
+    I: ModularArithmetic,
+    for<'a> &'a I: Sub<I, Output=I>,
+    for<'b>     I: Sub<&'b I, Output=I>,
+    for<'b>     I: Rem<&'b I, Output=I>,
+    for<'b>     I: Div<&'b I, Output=I>,
+{
+    // here we assume:
+    //  - p \in {P, Q}
+    //  - n = P * Q
+    //  - g = 1 + n
+
+    // compute g^{p-1} mod p^2
+    let gp = (I::one() - n) % pp;
+    // compute L_p(.)
+    let lp = l(&gp, p);
+    // compute L_p(.)^{-1}
+    let hp = I::modinv(&lp, p);
+    hp
+}
+
+#[test]
+fn test_h_function() {
+    let p = 17;
+    let q = 19;
+    let n = &p * &q;
+
+}
+
+
+fn crt<I>(mp: &I, mq: &I, dk: &CRTDecryptionKey<I>) -> I
+where
+    for<'a, 'b> &'a I: Sub<&'b I, Output=I>,
+    for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
+    for<'b> I: Mul<&'b I, Output=I>,
+    for<'b> I: Rem<&'b I, Output=I>,
+    for<'a> &'a I: Add<I, Output=I>,
+{
+    let u = ((mq - mp) * &dk.pinv) % &dk.q;
+    let m = mp + (&u * &dk.p);
+    m % &dk.n // TODO needed?
+}
+
+
+pub struct CRTDecryptionKey<I> {
+    p: I,  // first prime
+    pp: I,
+    pminusone: I,
+    pinv: I,
+    hp: I,
+    q: I,  // second prime
+    qq: I,
+    qminusone: I,
+    hq: I,
+    n: I,  // the modulus (also in public key)
+}
+
+impl <I> CRTDecryptionKey<I>
+where
+    I: Clone,
+    I: One,
+    I: ModularArithmetic,
+    for<'a>     &'a I: Sub<I, Output=I>,
+    for<'a,'b>  &'a I: Mul<&'b I, Output=I>,
+    for<'b>         I: Sub<&'b I, Output=I>,
+    for<'b>         I: Rem<&'b I, Output=I>,
+    for<'b>         I: Div<&'b I, Output=I>,
+{
+    pub fn from(p: &I, q: &I) -> CRTDecryptionKey<I> {
+        let ref pp = p * p;
+        let ref qq = q * q;
+        let ref n = p * q;
+        CRTDecryptionKey {
+            p: p.clone(),
+            pminusone: p - I::one(),
+            pp: pp.clone(),
+            pinv: p.clone(), // TODO I::modinv(p, ) // TODO,
+            hp: h(p, pp, n),
+            q: q.clone(),
+            qminusone: q - I::one(),
+            qq: qq.clone(),
+            hq: h(q, qq, n),
+            n: n.clone()
+        }
+    }
+}
+
+pub trait CRTDecryption<I>
+{
+    fn decrypt_crt(dk: &CRTDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I>;
+}
+
+impl <I> CRTDecryption<I> for Scheme<I>
+where
+    I: One,
+    I: ModularArithmetic,
+    for<'a>    &'a I: Sub<I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    for<'b>        I: Div<&'b I, Output=I>,
+    for<'b>        I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+    for<'b>        I: Rem<&'b I, Output=I>,
+    for<'a> &'a    I: Add<I, Output=I>,
+{
+    fn decrypt_crt(dk: &CRTDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
+        // process using p
+        let cp = I::modpow(&c.0, &dk.pminusone, &dk.pp);
+        let lp = l(&cp, &dk.p);
+        let mp = (&lp * &dk.hp) % &dk.p;
+        // process using q
+        let cq = I::modpow(&c.0, &dk.qminusone, &dk.qq);
+        let lq = l(&cq, &dk.q);
+        let mq = (&lq * &dk.hq) % &dk.q;
+        // perform CRT
+        Plaintext(crt(&mp, &mq, &dk))
+    }
 }
 
 /// Encoding of e.g. primitive values as plaintexts.
@@ -275,12 +402,12 @@ mod tests {
     use super::I;
     use ::plain::*;
 
-    fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>) {
+    fn test_keypair() -> (EncryptionKey<I>, CRTDecryptionKey<I>) {
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
         let n = &p * &q;
         let ek = EncryptionKey::from(&n);
-        let dk = DecryptionKey::from(&p, &q);
+        let dk = CRTDecryptionKey::from(&p, &q);
         (ek, dk)
     }
 
@@ -291,7 +418,7 @@ mod tests {
         let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let recovered_m = Scheme::decrypt_crt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -305,7 +432,7 @@ mod tests {
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
-        let m = Scheme::decrypt(&dk, &c);
+        let m = Scheme::decrypt_crt(&dk, &c);
         assert_eq!(m, Plaintext::from(30));
     }
 
@@ -318,7 +445,7 @@ mod tests {
         let m2 = Plaintext::from(20);
 
         let c = Scheme::mult(&ek, &c1, &m2);
-        let m = Scheme::decrypt(&dk, &c);
+        let m = Scheme::decrypt_crt(&dk, &c);
         assert_eq!(m, Plaintext::from(200));
     }
 
@@ -335,7 +462,7 @@ mod tests {
         let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let recovered_m = Scheme::decrypt_crt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
