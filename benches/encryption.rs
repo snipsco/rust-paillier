@@ -9,6 +9,10 @@ use paillier::*;
 pub fn bench_encryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
+    Scheme : plain::Encryption<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {

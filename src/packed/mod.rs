@@ -39,13 +39,13 @@ impl <I> EncryptionKey<I> {
 /// allocated for each (thereby determining an upper bound on each component value).
 #[derive(Debug,Clone)]
 pub struct DecryptionKey<I> {
-    underlying_dk: plain::DecryptionKey<I>,
+    underlying_dk: plain::BasicDecryptionKey<I>,
     component_count: usize,
     component_size: usize,  // in bits
 }
 
 impl <I> DecryptionKey<I> {
-    pub fn from(underlying_dk: plain::DecryptionKey<I>,
+    pub fn from(underlying_dk: plain::BasicDecryptionKey<I>,
                 component_count: usize,
                 component_size: usize)
                 -> DecryptionKey<I> {
@@ -195,6 +195,7 @@ where
     type ComponentType = T;
 
     fn encrypt(ek: &EncryptionKey<I>, ms: &Plaintext<I, T>) -> Ciphertext<I, T> {
+        use plain::Encryption;
         let plaintexts: &Vec<T> = &ms.data;
         assert!(plaintexts.len() == ek.component_count);
         let mut packed_plaintexts: I = I::from(plaintexts[0].clone());
@@ -209,6 +210,7 @@ where
     }
 
     fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
+        use plain::Decryption;
         let mut packed_plaintext: I = plain::Scheme::decrypt(&dk.underlying_dk, &c.data).0;
         let raw_mask: T = T::one() << dk.component_size;
         let mask: I = I::from(raw_mask.clone());
@@ -224,17 +226,20 @@ where
     }
 
     fn add(ek: &EncryptionKey<I>, c1: &Ciphertext<I, T>, c2: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        use plain::Addition;
         let c: plain::Ciphertext<I> = plain::Scheme::add(&ek.underlying_ek, &c1.data, &c2.data);
         Ciphertext { data: c, _phantom: PhantomData }
     }
 
     fn mult(ek: &EncryptionKey<I>, c1: &Ciphertext<I, T>, m2: &T) -> Ciphertext<I, T> {
+        use plain::Multiplication;
         let scalar = plain::Plaintext(I::from(m2.clone()));
-        let c: plain::Ciphertext<I> = plain::Scheme::mult(&ek.underlying_ek, &c1.data, &scalar);
+        let c: plain::Ciphertext<I> = plain::Scheme::mul(&ek.underlying_ek, &c1.data, &scalar);
         Ciphertext { data: c, _phantom: PhantomData }
     }
 
     fn rerandomise(ek: &EncryptionKey<I>, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        use plain::Rerandomisation;
         let d: plain::Ciphertext<I> = plain::Scheme::rerandomise(&ek.underlying_ek, &c.data);
         Ciphertext { data: d, _phantom: PhantomData }
     }
@@ -318,7 +323,7 @@ mod tests {
 
         let n = &p * &q;
         let plain_ek = ::plain::EncryptionKey::from(&n);
-        let plain_dk = ::plain::DecryptionKey::from(&p, &q);
+        let plain_dk = ::plain::BasicDecryptionKey::from(&p, &q);
 
         let ek = EncryptionKey::from(plain_ek, 3, 10);
         let dk = DecryptionKey::from(plain_dk, 3, 10);
