@@ -20,28 +20,33 @@ pub trait KeyGeneration<EK, DK>
     fn keypair(big_length: usize) -> (EK, DK);
 }
 
+/// Encryption of plaintext
 pub trait Encryption<EK, PT, CT> {
     /// Encrypt plaintext `m` under key `ek` into a ciphertext.
     fn encrypt(ek: &EK, m: &PT) -> CT;
 }
 
+/// Decryption of ciphertext
 pub trait Decryption<DK, CT, PT> {
     /// Decrypt ciphertext `c` using key `dk` into a plaintext.
     fn decrypt(ek: &DK, c: &CT) -> PT;
 }
 
+/// Addition of two ciphertexts
 pub trait Addition<EK, CT> {
     /// Homomorphically combine ciphertexts `c1` and `c2` to obtain a ciphertext containing
     /// the sum of the two underlying plaintexts, reduced modulus `n` from `ek`.
     fn add(ek: &EK, c1: &CT, c2: &CT) -> CT;
 }
 
+/// Multiplication of ciphertext with plaintext
 pub trait Multiplication<EK, CT, PT> {
     /// Homomorphically combine ciphertext `c1` and plaintext `m2` to obtain a ciphertext
     /// containing the multiplication of the (underlying) plaintexts, reduced modulus `n` from `ek`.
     fn mul(ek: &EK, c1: &CT, m2: &PT) -> CT;
 }
 
+/// Rerandomisation of ciphertext
 pub trait Rerandomisation<EK, CT> {
     /// Rerandomise ciphertext `c` to hide any history of which homomorphic operations were
     /// used to compute it, making it look exactly like a fresh encryption of the same plaintext.
@@ -107,7 +112,6 @@ where
 }
 
 
-
 impl <I> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
 where
     I: Samplable,
@@ -121,6 +125,7 @@ where
         Ciphertext(d)
     }
 }
+
 
 impl <I> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
 where
@@ -140,6 +145,7 @@ where
     }
 }
 
+
 impl <I> Addition<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
 where
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
@@ -151,6 +157,7 @@ where
     }
 }
 
+
 impl <I> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
 where
     I: ModularArithmetic,
@@ -159,6 +166,17 @@ where
         let c = I::modpow(&c1.0, &m2.0, &ek.nn);
         Ciphertext(c)
     }
+}
+
+
+
+fn l<I>(u: &I, n: &I) -> I
+where
+    I: One,
+    for<'a>    &'a I: Sub<I, Output=I>,
+    for<'b>        I: Div<&'b I, Output=I>,
+{
+    (u - I::one()) / n
 }
 
 
@@ -180,15 +198,11 @@ mod basic_decryption {
 
     impl <I> BasicDecryptionKey<I>
     where
-        I: One + Clone,
+        I: One,
+        I: Clone,
         I: ModularArithmetic,
-                       I: Mul<Output=I>,
-        for<'a>    &'a I: Mul<I, Output=I>,
         for<'a,'b> &'a I: Mul<&'b I, Output=I>,
-        for<'a,'b> &'a I: Div<&'b I, Output=I>,
-        for<'a,'b> &'a I: Add<&'b I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-        for<'a,'b> &'a I: Rem<&'b I, Output=I>
     {
         pub fn from(p: &I, q: &I) -> BasicDecryptionKey<I> {
             let ref one = I::one();
@@ -210,22 +224,15 @@ mod basic_decryption {
     impl <I> Decryption<BasicDecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
-        I: Samplable,
         I: ModularArithmetic,
-        for<'a,'b> &'a I: Add<&'b I, Output=I>,
         for<'a>    &'a I: Sub<I, Output=I>,
-        for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-        for<'a>    &'a I: Mul<I, Output=I>,
         for<'b>        I: Mul<&'b I, Output=I>,
-        for<'a,'b> &'a I: Mul<&'b I, Output=I>,
         for<'b>        I: Div<&'b I, Output=I>,
-        for<'a,'b> &'a I: Div<&'b I, Output=I>,
         for<'a>        I: Rem<&'a I, Output=I>,
-        for<'a,'b> &'a I: Rem<&'b I, Output=I>,
     {
         fn decrypt(dk: &BasicDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
             let u = I::modpow(&c.0, &dk.lambda, &dk.nn);
-            let m = ((&u - I::one()) / &dk.n * &dk.mu) % &dk.n;
+            let m = (l(&u, &dk.n) * &dk.mu) % &dk.n;
             Plaintext(m)
         }
     }
@@ -269,14 +276,17 @@ mod crt_decryption {
             let ref n = p * q;
             CrtDecryptionKey {
                 p: p.clone(),
-                pminusone: p - I::one(),
                 pp: pp.clone(),
-                pinv: p.clone(), // TODO I::modinv(p, ) // TODO,
-                hp: h(p, pp, n),
+                pinv: I::modinv(p, q),
+                pminusone: p - I::one(),
+
                 q: q.clone(),
-                qminusone: q - I::one(),
                 qq: qq.clone(),
+                qminusone: q - I::one(),
+
+                hp: h(p, pp, n),
                 hq: h(q, qq, n),
+
                 n: n.clone()
             }
         }
@@ -285,25 +295,14 @@ mod crt_decryption {
     impl <I> Decryption<CrtDecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
-        I: Samplable,
         I: ModularArithmetic,
-        for<'a,'b> &'a I: Add<&'b I, Output=I>,
-        for<'a>    &'a I: Sub<I, Output=I>,
-        for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-        for<'a>    &'a I: Mul<I, Output=I>,
-        for<'b>        I: Mul<&'b I, Output=I>,
-        for<'a,'b> &'a I: Mul<&'b I, Output=I>,
-        for<'b>        I: Div<&'b I, Output=I>,
-        for<'a,'b> &'a I: Div<&'b I, Output=I>,
-        for<'a>        I: Rem<&'a I, Output=I>,
-        for<'a,'b> &'a I: Rem<&'b I, Output=I>,
-        for<'a>    &'a I: Sub<I, Output=I>,
-        for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-        for<'b>        I: Div<&'b I, Output=I>,
-        for<'b>        I: Mul<&'b I, Output=I>,
-        for<'a,'b> &'a I: Mul<&'b I, Output=I>,
-        for<'b>        I: Rem<&'b I, Output=I>,
         for<'a> &'a    I: Add<I, Output=I>,
+        for<'a>    &'a I: Sub<I, Output=I>,
+        for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+        for<'b>        I: Mul<&'b I, Output=I>,
+        for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+        for<'b>        I: Div<&'b I, Output=I>,
+        for<'a>        I: Rem<&'a I, Output=I>,
     {
         fn decrypt(dk: &CrtDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
             // process using p
@@ -317,15 +316,6 @@ mod crt_decryption {
             // perform CRT
             Plaintext(crt(&mp, &mq, &dk))
         }
-    }
-
-    fn l<I>(u: &I, n: &I) -> I
-    where
-        I: One,
-        for<'a>    &'a I: Sub<I, Output=I>,
-        for<'b>        I: Div<&'b I, Output=I>,
-    {
-        (u - I::one()) / n
     }
 
     fn h<I>(p: &I, pp: &I, n: &I) -> I
@@ -351,26 +341,19 @@ mod crt_decryption {
         hp
     }
 
-    #[test]
-    fn test_h_function() {
-        let p = 17;
-        let q = 19;
-        let n = &p * &q;
-
-    }
-
     fn crt<I>(mp: &I, mq: &I, dk: &CrtDecryptionKey<I>) -> I
     where
-        for<'a, 'b> &'a I: Sub<&'b I, Output=I>,
-        for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
-        for<'b> I: Mul<&'b I, Output=I>,
-        for<'b> I: Rem<&'b I, Output=I>,
-        for<'a> &'a I: Add<I, Output=I>,
+        for<'a>    &'a I: Add<I, Output=I>,
+        for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+        for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+        for<'b>        I: Mul<&'b I, Output=I>,
+        for<'b>        I: Rem<&'b I, Output=I>,
     {
         let u = ((mq - mp) * &dk.pinv) % &dk.q;
         let m = mp + (&u * &dk.p);
-        m % &dk.n // TODO needed?
+        m % &dk.n
     }
+
 }
 pub use self::crt_decryption::*;
 
