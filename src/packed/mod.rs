@@ -38,13 +38,13 @@ impl <I> EncryptionKey<I> {
 /// allocated for each (thereby determining an upper bound on each component value).
 #[derive(Debug,Clone)]
 pub struct DecryptionKey<I> {
-    underlying_dk: plain::BasicDecryptionKey<I>,
+    underlying_dk: plain::CrtDecryptionKey<I>,
     component_count: usize,
     component_size: usize,  // in bits
 }
 
 impl <I> DecryptionKey<I> {
-    pub fn from(underlying_dk: plain::BasicDecryptionKey<I>,
+    pub fn from(underlying_dk: plain::CrtDecryptionKey<I>,
                 component_count: usize,
                 component_size: usize)
                 -> DecryptionKey<I> {
@@ -174,6 +174,7 @@ where
     I: Samplable,
     I: ModularArithmetic,
                     I: Add<Output=I>,
+    for<'a>    &'a  I: Add<I, Output=I>,
     for<'a,'b> &'a  I: Add<&'b I, Output=I>,
     for<'a>    &'a  I: Sub<I, Output=I>,
     for<'a,'b> &'a  I: Sub<&'b I, Output=I>,
@@ -293,6 +294,7 @@ where
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
     for<'a,'b> &'a I: Add<&'b I, Output=I>,
     for<'a>    &'a I: Sub<I, Output=I>,
+    for<'b>        I: Sub<&'b I, Output=I>,
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     for<'b>        I: Div<&'b I, Output=I>,
     for<'a,'b> &'a I: Div<&'b I, Output=I>,
@@ -322,7 +324,7 @@ mod tests {
 
         let n = &p * &q;
         let plain_ek = ::plain::EncryptionKey::from(&n);
-        let plain_dk = ::plain::BasicDecryptionKey::from((&p, &q));
+        let plain_dk = ::plain::CrtDecryptionKey::from((&p, &q));
 
         let ek = EncryptionKey::from(plain_ek, 3, 10);
         let dk = DecryptionKey::from(plain_dk, 3, 10);

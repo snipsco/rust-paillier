@@ -246,6 +246,8 @@ mod crt_decryption {
 
     use super::*;
 
+    /// Decryption key that should be kept private.
+    #[derive(Debug,Clone)]
     pub struct CrtDecryptionKey<I> {
         p: I,  // first prime
         pp: I,
@@ -364,7 +366,7 @@ mod keygen {
     use super::*;
     use arithimpl::primes::*;
 
-    impl <I> KeyGeneration<EncryptionKey<I>, BasicDecryptionKey<I>> for Scheme<I>
+    impl <I> KeyGeneration<EncryptionKey<I>, CrtDecryptionKey<I>> for Scheme<I>
     where
         I: From<u64>,
         I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -379,18 +381,19 @@ mod keygen {
         for<'a,'b> &'a I: Mul<&'b I, Output=I>,
         for<'a,'b> &'a I: Add<&'b I, Output=I>,
         for<'a>    &'a I: Sub<I, Output=I>,
+        for<'b>        I: Sub<&'b I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
         for<'b>        I: Div<&'b I, Output=I>,
         for<'a,'b> &'a I: Div<&'b I, Output=I>,
         for<'a>        I: Rem<&'a I, Output=I>,
         for<'a,'b> &'a I: Rem<&'b I, Output=I>
     {
-        fn keypair(bit_length: usize) -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
+        fn keypair(bit_length: usize) -> (EncryptionKey<I>, CrtDecryptionKey<I>) {
             let p = I::sample_prime(bit_length/2);
             let q = I::sample_prime(bit_length/2);
             let n = &p * &q;
             let ek = EncryptionKey::from(&n);
-            let dk = BasicDecryptionKey::from((&p, &q));
+            let dk = CrtDecryptionKey::from((&p, &q));
             (ek, dk)
         }
     }
@@ -494,7 +497,7 @@ mod tests {
     }
 
     #[cfg(feature="keygen")]
-    fn test_keypair_sized(bitsize: usize) -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
+    fn test_keypair_sized(bitsize: usize) -> (EncryptionKey<I>, CrtDecryptionKey<I>) {
         Scheme::keypair(bitsize)
     }
 
