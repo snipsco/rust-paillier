@@ -3,7 +3,6 @@
 //! Homomorphic properties are preserved, as long as the absolute values stay within specified bounds.
 
 use plain;
-use plain::AbstractScheme as PlainAbstractScheme;
 
 #[cfg(feature="keygen")]
 use plain::KeyGeneration as PlainKeyGeneration;
@@ -323,7 +322,7 @@ mod tests {
 
         let n = &p * &q;
         let plain_ek = ::plain::EncryptionKey::from(&n);
-        let plain_dk = ::plain::BasicDecryptionKey::from(&p, &q);
+        let plain_dk = ::plain::BasicDecryptionKey::from((&p, &q));
 
         let ek = EncryptionKey::from(plain_ek, 3, 10);
         let dk = DecryptionKey::from(plain_dk, 3, 10);

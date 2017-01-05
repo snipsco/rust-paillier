@@ -85,25 +85,25 @@ pub struct Ciphertext<I>(pub I);
 #[derive(Debug,Clone)]
 pub struct EncryptionKey<I> {
     n: I,  // the modulus
-    nn: I,     // the modulus squared
+    nn: I, // the modulus squared
 }
 
 impl <I, T> From<T> for Plaintext<I>
 where
     T: Copy,  // marker to avoid infinite loop by excluding Plaintext
-    I: From<T>
+    I: From<T>,
 {
     fn from(x: T) -> Plaintext<I> {
         Plaintext(I::from(x))
     }
 }
 
-impl <I> EncryptionKey<I>
+impl <'i, I> From<&'i I> for EncryptionKey<I>
 where
     I: Clone,
-    for<'a, 'b> &'a I: Mul<&'b I, Output=I>
+    for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
 {
-    pub fn from(modulus: &I) -> EncryptionKey<I> {
+    fn from(modulus: &I) -> EncryptionKey<I> {
         EncryptionKey {
             n: modulus.clone(),
             nn: modulus * modulus
@@ -196,7 +196,7 @@ mod basic_decryption {
         mu: I,     // fixed at lambda^{-1}
     }
 
-    impl <I> BasicDecryptionKey<I>
+    impl <'p, 'q, I> From<(&'p I, &'q I)> for BasicDecryptionKey<I>
     where
         I: One,
         I: Clone,
@@ -204,7 +204,7 @@ mod basic_decryption {
         for<'a,'b> &'a I: Mul<&'b I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     {
-        pub fn from(p: &I, q: &I) -> BasicDecryptionKey<I> {
+        fn from((p, q): (&I, &I)) -> BasicDecryptionKey<I> {
             let ref one = I::one();
             let modulus = p * q;
             let nn = &modulus * &modulus;
@@ -250,16 +250,16 @@ mod crt_decryption {
         p: I,  // first prime
         pp: I,
         pminusone: I,
-        pinv: I,
-        hp: I,
         q: I,  // second prime
         qq: I,
         qminusone: I,
+        pinvq: I,
+        hp: I,
         hq: I,
         n: I,  // the modulus (also in public key)
     }
 
-    impl <I> CrtDecryptionKey<I>
+    impl <'p, 'q, I> From<(&'p I, &'q I)> for CrtDecryptionKey<I>
     where
         I: Clone,
         I: One,
@@ -270,20 +270,20 @@ mod crt_decryption {
         for<'b>         I: Rem<&'b I, Output=I>,
         for<'b>         I: Div<&'b I, Output=I>,
     {
-        pub fn from(p: &I, q: &I) -> CrtDecryptionKey<I> {
+        fn from((p, q): (&I, &I)) -> CrtDecryptionKey<I> {
             let ref pp = p * p;
             let ref qq = q * q;
             let ref n = p * q;
             CrtDecryptionKey {
                 p: p.clone(),
                 pp: pp.clone(),
-                pinv: I::modinv(p, q),
                 pminusone: p - I::one(),
 
                 q: q.clone(),
                 qq: qq.clone(),
                 qminusone: q - I::one(),
 
+                pinvq: I::modinv(p, q),
                 hp: h(p, pp, n),
                 hq: h(q, qq, n),
 
@@ -296,7 +296,7 @@ mod crt_decryption {
     where
         I: One,
         I: ModularArithmetic,
-        for<'a> &'a    I: Add<I, Output=I>,
+        for<'a>    &'a I: Add<I, Output=I>,
         for<'a>    &'a I: Sub<I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
         for<'b>        I: Mul<&'b I, Output=I>,
@@ -349,7 +349,7 @@ mod crt_decryption {
         for<'b>        I: Mul<&'b I, Output=I>,
         for<'b>        I: Rem<&'b I, Output=I>,
     {
-        let u = ((mq - mp) * &dk.pinv) % &dk.q;
+        let u = ((mq - mp) * &dk.pinvq) % &dk.q;
         let m = mp + (&u * &dk.p);
         m % &dk.n
     }
@@ -364,7 +364,7 @@ mod keygen {
     use super::*;
     use arithimpl::primes::*;
 
-    impl <I> KeyGeneration<BasicEncryptionKey<I>, DecryptionKey<I>> for Scheme<I>
+    impl <I> KeyGeneration<EncryptionKey<I>, BasicDecryptionKey<I>> for Scheme<I>
     where
         I: From<u64>,
         I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -385,30 +385,18 @@ mod keygen {
         for<'a>        I: Rem<&'a I, Output=I>,
         for<'a,'b> &'a I: Rem<&'b I, Output=I>
     {
-        fn keypair(bit_length: usize) -> (BasicEncryptionKey<I>, DecryptionKey<I>) {
+        fn keypair(bit_length: usize) -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
             let p = I::sample_prime(bit_length/2);
             let q = I::sample_prime(bit_length/2);
             let n = &p * &q;
-            let ek = BasicEncryptionKey::from(&n);
-            let dk = DecryptionKey::from(&p, &q);
+            let ek = EncryptionKey::from(&n);
+            let dk = BasicDecryptionKey::from((&p, &q));
             (ek, dk)
         }
     }
 }
 #[cfg(feature="keygen")]
 pub use self::keygen::*;
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -463,7 +451,7 @@ mod tests {
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
         let n = &p * &q;
         let ek = EncryptionKey::from(&n);
-        let dk = CrtDecryptionKey::from(&p, &q);
+        let dk = CrtDecryptionKey::from((&p, &q));
         (ek, dk)
     }
 
@@ -506,7 +494,7 @@ mod tests {
     }
 
     #[cfg(feature="keygen")]
-    fn test_keypair_sized(bitsize: usize) -> (BasicEncryptionKey<I>, DecryptionKey<I>) {
+    fn test_keypair_sized(bitsize: usize) -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
         Scheme::keypair(bitsize)
     }
 

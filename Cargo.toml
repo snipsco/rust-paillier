@@ -1,6 +1,6 @@
 [package]
 name = "paillier"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   "Mario Cornejo <mario.cornejo@snips.ai>",
   "Morten Dahl <morten.dahl@snips.ai>"
@@ -40,6 +40,10 @@ bencher = "0.1"
 
 [[bench]]
 name = "encryption"
+harness = false
+
+[[bench]]
+name = "crt"
 harness = false
 
 [[bench]]
