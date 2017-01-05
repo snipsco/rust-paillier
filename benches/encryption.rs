@@ -26,6 +26,14 @@ where
 pub fn bench_decryption<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
+    Scheme : plain::Encryption<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
+    Scheme : plain::Decryption<
+        plain::BasicDecryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
@@ -40,6 +48,13 @@ where
 pub fn bench_rerandomisation<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
+    Scheme : plain::Encryption<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
+    Scheme : plain::Rerandomisation<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
@@ -54,6 +69,13 @@ where
 pub fn bench_addition<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
+    Scheme : plain::Encryption<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
+    Scheme : plain::Addition<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
@@ -73,7 +95,15 @@ where
 pub fn bench_multiplication<Scheme>(b: &mut Bencher)
 where
     Scheme : plain::AbstractScheme,
+    Scheme : plain::Encryption<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
+    Scheme : plain::Multiplication<
+        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>,
+        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>>,
     Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
@@ -84,7 +114,7 @@ where
     let m2 = Scheme::encode(20);
 
     b.iter(|| {
-        let _ = Scheme::mult(&ek, &c1, &m2);
+        let _ = Scheme::mul(&ek, &c1, &m2);
     });
 }
 
@@ -98,7 +128,7 @@ static Q: &'static str = "601108047614829051841722419990950640837215683913101323
 
 pub trait TestKeyGeneration<I>
 {
-    fn test_keypair() -> (plain::EncryptionKey<I>, plain::DecryptionKey<I>);
+    fn test_keypair() -> (plain::EncryptionKey<I>, plain::BasicDecryptionKey<I>);
 }
 
 use std::ops::{Add, Sub, Mul, Div, Rem};
@@ -120,12 +150,12 @@ where
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
  {
-    fn test_keypair() -> (plain::EncryptionKey<I>, plain::DecryptionKey<I>) {
+    fn test_keypair() -> (plain::EncryptionKey<I>, plain::BasicDecryptionKey<I>) {
         let ref p = str::parse(P).unwrap();
         let ref q = str::parse(Q).unwrap();
         let ref n = p * q;
         let ek = plain::EncryptionKey::from(n);
-        let dk = plain::DecryptionKey::from(p, q);
+        let dk = plain::BasicDecryptionKey::from((p, q));
         (ek, dk)
     }
 }
