@@ -13,6 +13,14 @@ fn main() {
     use paillier::plain::*;
 
     let (ek, dk) = PlainPaillier::keypair(100);
+    // let ek = keypair.encryption_key();
+    // let dk = keypair.decryption_key();
+
+    let e = RationalEncoder::new(10, 60);
+    let m: RationalPlaintext<T> = e.encode(vec![]);
+    let c: RationalCiphertext<T> = Paillier::encrypt(m);
+    let n = ..
+    let _ : Vec<T> = e.decode(n)
 
     let m1 = PlainPaillier::encode(10);
     let c1 = PlainPaillier::encrypt(&ek, &m1);

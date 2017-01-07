@@ -53,6 +53,13 @@ pub trait Rerandomisation<EK, CT> {
     fn rerandomise(ek: &EK, c: &CT) -> CT;
 }
 
+/// Encoding and decoding of e.g. primitive values as plaintexts.
+pub trait Encoding<T, P>
+{
+    fn encode(x: T) -> P;
+    fn decode(y: P) -> T;
+}
+
 
 /// Operations exposed by the basic Paillier scheme.
 pub trait AbstractScheme
@@ -73,29 +80,14 @@ impl <I> AbstractScheme for Scheme<I>
 
 
 
-/// Representation of unencrypted message.
-#[derive(Debug,Clone,PartialEq)]
-pub struct Plaintext<I>(pub I);
 
-/// Representation of encrypted message.
-#[derive(Debug,Clone)]
-pub struct Ciphertext<I>(pub I);
+
 
 /// Encryption key that may be shared publicly.
 #[derive(Debug,Clone)]
 pub struct EncryptionKey<I> {
     n: I,  // the modulus
     nn: I, // the modulus squared
-}
-
-impl <I, T> From<T> for Plaintext<I>
-where
-    T: Copy,  // marker to avoid infinite loop by excluding Plaintext
-    I: From<T>,
-{
-    fn from(x: T) -> Plaintext<I> {
-        Plaintext(I::from(x))
-    }
 }
 
 impl <'i, I> From<&'i I> for EncryptionKey<I>
@@ -110,6 +102,56 @@ where
         }
     }
 }
+
+
+
+
+
+
+/// Representation of unencrypted message.
+#[derive(Debug,Clone,PartialEq)]
+pub struct Plaintext<I>(pub I);
+
+/// Representation of encrypted message.
+#[derive(Debug,Clone)]
+pub struct Ciphertext<I>(pub I);
+
+
+
+
+
+
+
+
+
+
+impl <I, T> From<T> for Plaintext<I>
+where
+    T: Copy,  // marker to avoid infinite loop by excluding Plaintext
+    I: From<T>,
+{
+    fn from(x: T) -> Plaintext<I> {
+        Plaintext(I::from(x))
+    }
+}
+
+impl <I, T> Encoding<T, Plaintext<I>> for Scheme<I>
+where
+    Plaintext<I> : From<T>,
+    Plaintext<I> : Into<T>,
+{
+    fn encode(x: T) -> Plaintext<I> {
+        Plaintext::from(x)
+    }
+
+    fn decode(x: Plaintext<I>) -> T {
+        Plaintext::into(x)
+    }
+}
+
+
+
+
 
 
 impl <I> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
@@ -401,44 +443,6 @@ mod keygen {
 #[cfg(feature="keygen")]
 pub use self::keygen::*;
 
-
-
-
-
-
-/// Encoding of e.g. primitive values as plaintexts.
-pub trait Encode<T>
-{
-    type I;
-    fn encode(x: T) -> Plaintext<Self::I>;
-}
-
-impl <I, T> Encode<T> for Scheme<I>
-where
-    Plaintext<I> : From<T>
-{
-    type I = I;
-    fn encode(x: T) -> Plaintext<I> {
-        Plaintext::from(x)
-    }
-}
-
-/// Decoding of plaintexts into e.g. primitive values.
-pub trait Decode<T>
-{
-    type I;
-    fn decode(x: Plaintext<Self::I>) -> T;
-}
-
-impl <I, T> Decode<T> for Scheme<I>
-where
-    Plaintext<I> : Into<T>
-{
-    type I = I;
-    fn decode(x: Plaintext<I>) -> T {
-        Plaintext::into(x)
-    }
-}
 
 
 
