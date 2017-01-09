@@ -6,20 +6,19 @@ extern crate num_traits;
 use bencher::Bencher;
 use paillier::*;
 
-pub fn bench_encryption<Scheme>(b: &mut Bencher)
+pub fn bench_encryption<S>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme,
-    Scheme : plain::Encryption<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
-    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+    S : Encryption<
+            EncryptionKey<<S as AbstractScheme>::BigInteger>,
+            Plaintext<<S as AbstractScheme>::BigInteger>,
+            Ciphertext<<S as AbstractScheme>::BigInteger>>,
+    S : Encoding<u32, I=<S as AbstractScheme>::BigInteger>,
+    S : TestKeyGeneration<<S as AbstractScheme>::BigInteger>
 {
-    let (ek, _) = Scheme::test_keypair();
-    let m = Scheme::encode(10);
+    let (ek, _) = S::test_keypair();
+    let m = S::encode(10);
     b.iter(|| {
-        let _ = Scheme::encrypt(&ek, &m);
+        let _ = S::encrypt(&ek, &m);
     });
 }
 

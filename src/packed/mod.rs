@@ -216,6 +216,7 @@ mod tests {
     use super::I;
     use ::packed::*;
     use ::Scheme;
+    use ::traits::*;
 
     fn test_keypair() -> (plain::EncryptionKey<I>, plain::CrtDecryptionKey<I>) {
         //1024 bits prime

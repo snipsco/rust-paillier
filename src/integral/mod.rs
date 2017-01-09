@@ -1,13 +1,12 @@
 
 //! Standard Paillier supporting ciphertext addition and plaintext multiplication.
 
+use ::Scheme;
+use traits::*;
+
 use std::ops::{Add, Sub, Mul, Div, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
-
-use super::Scheme;
-use traits::*;
-
 
 impl <I> AbstractScheme for Scheme<I>
 {
