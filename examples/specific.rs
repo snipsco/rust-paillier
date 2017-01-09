@@ -10,7 +10,7 @@ fn main() {
 fn main() {
 
     use paillier::BigInteger;  // could be a specific type such as RampBigInteger as well
-    use paillier::plain::*;
+    use paillier::*;
     type MyScheme = Scheme<BigInteger>;
 
     let (ek, dk) = MyScheme::keypair(100);

@@ -19,74 +19,57 @@ pub struct Plaintext<I, T> {
     _phantom: PhantomData<T>
 }
 
-impl <I, T> From<T> for Plaintext<I, T>
-where
-    I: From<T>,
-    T: Clone
-{
-    fn from(x: T) -> Self {
-        Plaintext {
-            data: vec![x.clone()],
-            component_count: 3,
-            component_size: 32,  // TODO
-            _phantom: PhantomData
-        }
-    }
-}
 
-impl <I, T> From<Vec<T>> for Plaintext<I, T>
-where
-    I : From<T>,
-    T : Clone,
-{
-    fn from(x: Vec<T>) -> Self {
-        Plaintext {
-            data: x.clone(),
-            component_count: 3,
-            component_size: 32,  // TODO
-            _phantom: PhantomData
-        }
-    }
-}
-
-pub struct Packer {
+pub struct Encoder<I, T> {
     component_count: usize,
     component_size: usize,  // in bits
+    _phantom: PhantomData<(I, T)>
 }
 
-impl Packer {
-
-    pub fn default() -> Packer {
-        Self::new(10, 32)
+impl<I, T> Encoder<I, T> {
+    pub fn default() -> Encoder<I, T> {
+        Self::new(10, 64)
     }
 
-    pub fn new(component_count: usize, component_size: usize) -> Packer {
-        Packer {
+    pub fn new(component_count: usize, component_size: usize) -> Encoder<I, T> {
+        use std::mem::size_of;
+        assert!(size_of::<T>() <= component_size);
+        Encoder {
             component_count: component_count,
-            component_size: component_size
+            component_size: component_size,
+            _phantom: PhantomData,
         }
     }
-
 }
 
-impl Packer
+impl<I, T> Encoder<I, T>
+where
+    T: One,
+    T: Clone,
+    I: From<T>,
+    T: Shl<usize, Output=T>,
+    T: ConvertFrom<I>,
+    T: Debug,
+    I: One,
+    I: Clone,
+    I: From<T>,
+    I: Shl<usize, Output=I>,
+    I: Add<I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
+    for<'a> &'a    I: Shr<usize, Output=I>,
 {
-    fn encode<I, T>(&self, x: &Vec<T>) -> Plaintext<I, T>
-    where
-        T: Clone,
-        I: From<T>,
-        I: Shl<usize, Output=I>,
-        I: Add<I, Output=I>,
-    {
+    pub fn encode(&self, x: &Vec<T>) -> Plaintext<I, T> {
         Plaintext {
-            data: x.clone(),
+            data: plain::Plaintext(pack(x, self.component_count, self.component_size)),
             component_count: self.component_count,
             component_size: self.component_size,
             _phantom: PhantomData,
         }
     }
 
-    // fn decode<I, T>(&self, x: &Vec<T>) -> Plaintext<I, T>
+    pub fn decode(&self, x: &Plaintext<I, T>) -> Vec<T> {
+        unpack(x.data.0.clone(), self.component_count, self.component_size)
+    }
 }
 
 fn pack<I, T>(components: &Vec<T>, component_count: usize, component_size: usize) -> I
@@ -105,19 +88,18 @@ where
     packed
 }
 
+use std::fmt::Debug;
+use arithimpl::traits::ConvertFrom;
 fn unpack<I, T>(mut packed_components: I, component_count: usize, component_size: usize) -> Vec<T>
 where
-    T: One,
-    T: Clone,
-    T: Shl<usize, Output=T>,
     T: ConvertFrom<I>,
     I: One,
     I: From<T>,
+    I: Shl<usize, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>,
     for<'a> &'a    I: Shr<usize, Output=I>,
 {
-    let raw_mask: T = T::one() << component_size;
-    let mask: I = I::from(raw_mask.clone());
+    let mask = I::one() << component_size;
     let mut components: Vec<T> = vec![];
     for _ in 0..component_count {
         let raw_component = &packed_components % &mask;  // TODO replace with bitwise AND
@@ -129,42 +111,6 @@ where
     components
 }
 
-// impl <I, T> Encoding<T, Plaintext<I, T>> for Packer
-// {
-//     fn encode(&self, x: T) -> Plaintext<I, T> {
-//         x
-//
-//     }
-// }
-
-// pub trait Encoding<T, P>
-// {
-//     fn encode(x: T) -> P;
-// }
-//
-// /// Decoding of e.g. primitive values as plaintexts.
-// pub trait Decoding<P, T>
-// {
-//     fn decode(y: P) -> T;
-// }
-
-
-// impl <I, T, S> Encoding<Vec<T>, Plaintext<I, T>> for S
-// where
-//     S: AbstractScheme<BigInteger=I>,
-//     Plaintext<I, T> : From<T>,
-// {
-//     fn encode(x: Vec<T>) -> Plaintext<I, T> {
-//         Plaintext::from(x)
-//     }
-// }
-
-
-// impl <T : Clone> From<[T]> for Plaintext<T> {
-//     fn from(x: [T]) -> Self {
-//         Plaintext(x.to_vec())
-//     }
-// }
 
 /// Representation of encrypted message (vector).
 #[derive(Debug,Clone)]
@@ -182,11 +128,10 @@ where
     S: Rerandomisation<EK, plain::Ciphertext<I>>,
 {
     fn rerandomise(ek: &EK, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
-        let d = S::rerandomise(&ek, &c.data);
         Ciphertext {
-            data: d,
+            data: S::rerandomise(&ek, &c.data),
             component_count: c.component_count,
-            component_size:  c.component_size,
+            component_size: c.component_size,
             _phantom: PhantomData
         }
     }
@@ -197,16 +142,10 @@ impl <I, T, S, EK> Encryption<EK, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Encryption<EK, plain::Plaintext<I>, plain::Ciphertext<I>>,
-    T: Clone,
-    I: From<T>,
-    I: Shl<usize, Output=I>,
-    I: Add<I, Output=I>,
 {
     fn encrypt(ek: &EK, m: &Plaintext<I, T>) -> Ciphertext<I, T> {
-        let packed = pack(&m.data, m.component_count, m.component_size);
-        let c = S::encrypt(&ek, &plain::Plaintext(packed));
         Ciphertext {
-            data: c,
+            data: S::encrypt(&ek, &m.data),
             component_count: m.component_count,
             component_size: m.component_size,
             _phantom: PhantomData
@@ -215,25 +154,14 @@ where
 }
 
 
-use arithimpl::traits::ConvertFrom;
 impl <I, T, S, DK> Decryption<DK, Ciphertext<I, T>, Plaintext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Decryption<DK, plain::Ciphertext<I>, plain::Plaintext<I>>,
-    T: One,
-    T: Clone,
-    T: Shl<usize, Output=T>,
-    T: ConvertFrom<I>,
-    I: One,
-    I: From<T>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
-    for<'a> &'a    I: Shr<usize, Output=I>,
 {
     fn decrypt(dk: &DK, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
-        let raw_plaintext = S::decrypt(dk, &c.data).0;
-        let result = unpack(raw_plaintext, c.component_count, c.component_size);
         Plaintext {
-            data: result,
+            data: S::decrypt(dk, &c.data),
             component_count: c.component_count,
             component_size: c.component_size,
             _phantom: PhantomData
@@ -289,28 +217,30 @@ mod tests {
     use ::packed::*;
     use ::Scheme;
 
-    fn test_keypair() -> (plain::EncryptionKey<I>, ::plain::CrtDecryptionKey<I>) {
+    fn test_keypair() -> (plain::EncryptionKey<I>, plain::CrtDecryptionKey<I>) {
         //1024 bits prime
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
 
         let n = &p * &q;
-        let plain_ek = ::plain::EncryptionKey::from(&n);
-        let plain_dk = ::plain::CrtDecryptionKey::from((&p, &q));
-
-        // let ek = EncryptionKey::from(plain_ek, 10, 64);
-        // let dk = DecryptionKey::from(plain_dk, 3, 10);
-        (plain_ek, plain_dk)
+        let ek = plain::EncryptionKey::from(&n);
+        let dk = plain::CrtDecryptionKey::from((&p, &q));
+        (ek, dk)
     }
 
     #[test]
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let m: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
-        let c = Scheme::encrypt(&ek, &m);
+        let encoder = Encoder::new(3, 64);
+        let m = vec![1, 2, 3];
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let p = encoder.encode(&m);
+        let c = Scheme::encrypt(&ek, &p);
+        let recovered_p = Scheme::decrypt(&dk, &c);
+        let recovered_m = encoder.decode(&recovered_p);
+
+        assert_eq!(recovered_p, p);
         assert_eq!(recovered_m, m);
     }
 
@@ -318,27 +248,31 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let m1 = Plaintext::from(vec![1, 2, 3]);
+        let encoder = Encoder::new(3, 16);
+
+        let m1 = encoder.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = Plaintext::from(vec![1, 2, 3]);
+        let m2 = encoder.encode(&vec![1, 2, 3]);
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
-        let m: Plaintext<I, u64> = Scheme::decrypt(&dk, &c);
-        assert_eq!(m.data, vec![2, 4, 6]);
+        let m = Scheme::decrypt(&dk, &c);
+        assert_eq!(m, encoder.encode(&vec![2, 4, 6]));
     }
 
     #[test]
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let m1: Plaintext<I, u64> = Plaintext::from(vec![1, 2, 3]);
+        let encoder = Encoder::new(3, 16);
+
+        let m1 = encoder.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
         let m2 = 4;
 
         let c = Scheme::mul(&ek, &c1, &m2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(m.data, vec![4, 8, 12]);
+        assert_eq!(m, encoder.encode(&vec![4, 8, 12]));
     }
 
 });
