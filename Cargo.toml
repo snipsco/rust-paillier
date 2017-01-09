@@ -18,7 +18,7 @@ repository = "https://github.com/snips/rust-paillier"
 license = "MIT/Apache-2.0"
 
 [features]
-default = ["inclramp", "defaultramp"]
+default = ["inclramp", "rampexpmod", "defaultramp"]
 keygen = ["primal"]
 inclramp = ["ramp"]
 inclnum = ["num"]
@@ -26,11 +26,12 @@ inclgmp = ["rust-gmp"]
 defaultramp = []
 defaultnum = []
 defaultgmp = []
+rampexpmod = []
 
 [dependencies]
 rand = "0.3"
 num-traits = "0.1"
-ramp = { git="https://github.com/snipsco/ramp.git", optional=true }
+ramp = { git="https://github.com/snipsco/ramp.git", branch="modexp", optional=true }
 num = { version="0.1", optional=true }
 rust-gmp = { version="0.4", optional=true }
 primal = { version="0.2", optional=true }

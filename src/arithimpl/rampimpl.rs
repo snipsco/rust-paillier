@@ -35,6 +35,11 @@ impl ModularArithmetic for ramp::Int {
     fn divmod(dividend: &Self, module: &Self) -> (Self, Self) {
         dividend.divmod(module)
     }
+
+    #[cfg(feature="rampexpmod")]
+    fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
+        base.modpow(exponent, modulus)
+    }
 }
 
 impl ConvertFrom<ramp::Int> for u64 {
