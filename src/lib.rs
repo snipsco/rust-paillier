@@ -58,16 +58,12 @@ pub struct Scheme<I> {
 mod rampinstance
 {
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
-    pub type RampPlainPaillier = ::Scheme<RampBigInteger>;
-    // pub type RampPackedPaillier = ::packed::Scheme<RampBigInteger>;
-    // pub type RampPackedPaillier = RampPlainPaillier;
+    pub type RampPaillier = ::Scheme<RampBigInteger>;
 
     #[cfg(feature="defaultramp")]
     pub type BigInteger = RampBigInteger;
     #[cfg(feature="defaultramp")]
-    pub type PlainPaillier = RampPlainPaillier;
-    #[cfg(feature="defaultramp")]
-    pub type Paillier = RampPlainPaillier;
+    pub type Paillier = RampPaillier;
 }
 #[cfg(feature="inclramp")]
 pub use self::rampinstance::*;
@@ -81,15 +77,12 @@ pub use self::rampinstance::*;
 mod numinstance
 {
     pub use arithimpl::numimpl::BigInteger as NumBigInteger;
-    pub type NumPlainPaillier = ::Scheme<NumBigInteger>;
-    pub type NumPackedPaillier = NumPlainPaillier; //::packed::Scheme<NumBigInteger, u64>;
+    pub type NumPaillier = ::Scheme<NumBigInteger>;
 
     #[cfg(feature="defaultnum")]
     pub type BigInteger = NumBigInteger;
     #[cfg(feature="defaultnum")]
-    pub type PlainPaillier = NumPlainPaillier;
-    #[cfg(feature="defaultnum")]
-    pub type PackedPaillier = NumPackedPaillier;
+    pub type Paillier = NumPaillier;
 }
 #[cfg(feature="inclnum")]
 pub use self::numinstance::*;
@@ -103,15 +96,12 @@ pub use self::numinstance::*;
 mod gmpinstance
 {
     pub use arithimpl::gmpimpl::BigInteger as GmpBigInteger;
-    pub type GmpPlainPaillier = ::Scheme<GmpBigInteger>;
-    pub type GmpPackedPaillier = GmpPlainPaillier; //::packed::Scheme<GmpBigInteger, u64>;
+    pub type GmpPaillier = ::Scheme<GmpBigInteger>;
 
     #[cfg(feature="defaultgmp")]
     pub type BigInteger = GmpBigInteger;
     #[cfg(feature="defaultgmp")]
-    pub type PlainPaillier = GmpPlainPaillier;
-    #[cfg(feature="defaultgmp")]
-    pub type PackedPaillier = GmpPackedPaillier;
+    pub type Paillier = GmpPaillier;
 }
 #[cfg(feature="inclgmp")]
 pub use self::gmpinstance::*;

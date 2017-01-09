@@ -164,29 +164,29 @@ where
 
 #[cfg(feature="inclramp")]
 benchmark_group!(ramp,
-    self::bench_encryption<RampPlainPaillier>,
-    self::bench_decryption<RampPlainPaillier>,
-    self::bench_rerandomisation<RampPlainPaillier>,
-    self::bench_addition<RampPlainPaillier>,
-    self::bench_multiplication<RampPlainPaillier>
+    self::bench_encryption<RampPaillier>,
+    self::bench_decryption<RampPaillier>,
+    self::bench_rerandomisation<RampPaillier>,
+    self::bench_addition<RampPaillier>,
+    self::bench_multiplication<RampPaillier>
 );
 
 #[cfg(feature="inclnum")]
 benchmark_group!(num,
-    self::bench_encryption<NumPlainPaillier>,
-    self::bench_decryption<NumPlainPaillier>,
-    self::bench_rerandomisation<NumPlainPaillier>,
-    self::bench_addition<NumPlainPaillier>,
-    self::bench_multiplication<NumPlainPaillier>
+    self::bench_encryption<NumPaillier>,
+    self::bench_decryption<NumPaillier>,
+    self::bench_rerandomisation<NumPaillier>,
+    self::bench_addition<NumPaillier>,
+    self::bench_multiplication<NumPaillier>
 );
 
 #[cfg(feature="inclgmp")]
 benchmark_group!(gmp,
-    self::bench_encryption<GmpPlainPaillier>,
-    self::bench_decryption<GmpPlainPaillier>,
-    self::bench_rerandomisation<GmpPlainPaillier>,
-    self::bench_addition<GmpPlainPaillier>,
-    self::bench_multiplication<GmpPlainPaillier>
+    self::bench_encryption<GmpPaillier>,
+    self::bench_decryption<GmpPaillier>,
+    self::bench_rerandomisation<GmpPaillier>,
+    self::bench_addition<GmpPaillier>,
+    self::bench_multiplication<GmpPaillier>
 );
 
 pub fn dummy(_: &mut Bencher) {}

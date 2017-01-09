@@ -6,7 +6,7 @@ extern crate paillier;
 mod bench {
 
     use bencher::Bencher;
-    use paillier::RampPlainPaillier;
+    use paillier::RampPaillier;
     use paillier::*;
     use paillier::basic::*;
 
@@ -71,10 +71,10 @@ mod bench {
     }
 
     benchmark_group!(ramp,
-        self::bench_key_generation_512<RampPlainPaillier>,
-        self::bench_key_generation_1024<RampPlainPaillier>,
-        self::bench_key_generation_2048<RampPlainPaillier>,
-        self::bench_key_generation_3072<RampPlainPaillier>
+        self::bench_key_generation_512<RampPaillier>,
+        self::bench_key_generation_1024<RampPaillier>,
+        self::bench_key_generation_2048<RampPaillier>,
+        self::bench_key_generation_3072<RampPaillier>
     );
 
 }

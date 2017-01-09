@@ -12,21 +12,21 @@ macro_rules! scheme {
         #[cfg(feature="inclramp")]
         pub mod ramp {
             #[allow(dead_code)]
-            type $s = ::RampPlainPaillier;
+            type $s = ::RampPaillier;
             $body
         }
 
         #[cfg(feature="inclgmp")]
         pub mod gmp {
             #[allow(dead_code)]
-            type $s = ::GmpPlainPaillier;
+            type $s = ::GmpPaillier;
             $body
         }
 
         #[cfg(feature="inclnum")]
         pub mod num {
             #[allow(dead_code)]
-            type $s = ::NumPlainPaillier;
+            type $s = ::NumPaillier;
             $body
         }
 
