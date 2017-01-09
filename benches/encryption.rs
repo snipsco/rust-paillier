@@ -5,14 +5,16 @@ extern crate num_traits;
 
 use bencher::Bencher;
 use paillier::*;
+use paillier::basic::*;
 
 pub fn bench_encryption<S>(b: &mut Bencher)
 where
+    S : AbstractScheme,
     S : Encryption<
             EncryptionKey<<S as AbstractScheme>::BigInteger>,
             Plaintext<<S as AbstractScheme>::BigInteger>,
             Ciphertext<<S as AbstractScheme>::BigInteger>>,
-    S : Encoding<u32, I=<S as AbstractScheme>::BigInteger>,
+    S : Encoding<u32, Plaintext<<S as AbstractScheme>::BigInteger>>,
     S : TestKeyGeneration<<S as AbstractScheme>::BigInteger>
 {
     let (ek, _) = S::test_keypair();
@@ -22,40 +24,40 @@ where
     });
 }
 
-pub fn bench_decryption<Scheme>(b: &mut Bencher)
+pub fn bench_decryption<S>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme,
-    Scheme : plain::Encryption<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Decryption<
-        plain::BasicDecryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
-    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+    S : AbstractScheme,
+    S : Encryption<
+        EncryptionKey<<S as AbstractScheme>::BigInteger>,
+        Plaintext<<S as AbstractScheme>::BigInteger>,
+        Ciphertext<<S as AbstractScheme>::BigInteger>>,
+    S : Decryption<
+        BasicDecryptionKey<<S as AbstractScheme>::BigInteger>,
+        Ciphertext<<S as AbstractScheme>::BigInteger>,
+        Plaintext<<S as AbstractScheme>::BigInteger>>,
+    S : Encoding<u32, Plaintext<<S as AbstractScheme>::BigInteger>>,
+    S : TestKeyGeneration<<S as AbstractScheme>::BigInteger>
 {
-    let (ek, dk) = Scheme::test_keypair();
-    let m = Scheme::encode(10);
-    let c = Scheme::encrypt(&ek, &m);
+    let (ek, dk) = S::test_keypair();
+    let m = S::encode(10);
+    let c = S::encrypt(&ek, &m);
     b.iter(|| {
-        let _ = Scheme::decrypt(&dk, &c);
+        let _ = S::decrypt(&dk, &c);
     });
 }
 
 pub fn bench_rerandomisation<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme,
-    Scheme : plain::Encryption<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Rerandomisation<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
-    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+    Scheme : AbstractScheme,
+    Scheme : Encryption<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Plaintext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Rerandomisation<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Encoding<u32, Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : TestKeyGeneration<<Scheme as AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
     let m = Scheme::encode(10);
@@ -67,16 +69,18 @@ where
 
 pub fn bench_addition<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme,
-    Scheme : plain::Encryption<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Addition<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
-    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+    Scheme : AbstractScheme,
+    Scheme : Encryption<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Plaintext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Addition<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Encoding<u32, Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : TestKeyGeneration<<Scheme as AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
 
@@ -93,17 +97,18 @@ where
 
 pub fn bench_multiplication<Scheme>(b: &mut Bencher)
 where
-    Scheme : plain::AbstractScheme,
-    Scheme : plain::Encryption<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : plain::Encode<u32, I=<Scheme as plain::AbstractScheme>::BigInteger>,
-    Scheme : plain::Multiplication<
-        plain::EncryptionKey<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Ciphertext<<Scheme as plain::AbstractScheme>::BigInteger>,
-        plain::Plaintext<<Scheme as plain::AbstractScheme>::BigInteger>>,
-    Scheme : TestKeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+    Scheme : AbstractScheme,
+    Scheme : Encryption<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Plaintext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Encoding<u32, Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : Multiplication<
+        EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>,
+        Plaintext<<Scheme as AbstractScheme>::BigInteger>,
+        Ciphertext<<Scheme as AbstractScheme>::BigInteger>>,
+    Scheme : TestKeyGeneration<<Scheme as AbstractScheme>::BigInteger>
 {
     let (ek, _) = Scheme::test_keypair();
 
@@ -127,7 +132,7 @@ static Q: &'static str = "158741574437007245654463598139927898730476924736461654
 
 pub trait TestKeyGeneration<I>
 {
-    fn test_keypair() -> (plain::EncryptionKey<I>, plain::BasicDecryptionKey<I>);
+    fn test_keypair() -> (EncryptionKey<I>, BasicDecryptionKey<I>);
 }
 
 use std::ops::{Add, Sub, Mul, Div, Rem};
@@ -135,7 +140,7 @@ use num_traits::{One};
 use paillier::arithimpl::traits::ModularArithmetic;
 
 // #[cfg(feature="inclramp")]
-impl <I> TestKeyGeneration<I> for plain::Scheme<I>
+impl <I> TestKeyGeneration<I> for Scheme<I>
 where
     I: Clone,
     I: One,
@@ -149,12 +154,12 @@ where
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
  {
-    fn test_keypair() -> (plain::EncryptionKey<I>, plain::BasicDecryptionKey<I>) {
+    fn test_keypair() -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
         let ref p = str::parse(P).unwrap();
         let ref q = str::parse(Q).unwrap();
         let ref n = p * q;
-        let ek = plain::EncryptionKey::from(n);
-        let dk = plain::BasicDecryptionKey::from((p, q));
+        let ek = EncryptionKey::from(n);
+        let dk = BasicDecryptionKey::from((p, q));
         (ek, dk)
     }
 }

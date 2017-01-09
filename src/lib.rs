@@ -35,9 +35,10 @@ macro_rules! bigint {
 
 pub mod traits;
 pub mod arithimpl;
-// pub mod keys;
-pub mod plain;
-pub mod packed;
+pub mod basic;
+pub mod integral;
+
+pub use basic::{EncryptionKey, BasicDecryptionKey, CrtDecryptionKey};
 
 // pub use keys::*;
 pub use traits::*;
@@ -59,14 +60,14 @@ mod rampinstance
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
     pub type RampPlainPaillier = ::Scheme<RampBigInteger>;
     // pub type RampPackedPaillier = ::packed::Scheme<RampBigInteger>;
-    pub type RampPackedPaillier = RampPlainPaillier;
+    // pub type RampPackedPaillier = RampPlainPaillier;
 
     #[cfg(feature="defaultramp")]
     pub type BigInteger = RampBigInteger;
     #[cfg(feature="defaultramp")]
     pub type PlainPaillier = RampPlainPaillier;
     #[cfg(feature="defaultramp")]
-    pub type PackedPaillier = RampPackedPaillier;
+    pub type Paillier = RampPlainPaillier;
 }
 #[cfg(feature="inclramp")]
 pub use self::rampinstance::*;
@@ -80,8 +81,8 @@ pub use self::rampinstance::*;
 mod numinstance
 {
     pub use arithimpl::numimpl::BigInteger as NumBigInteger;
-    pub type NumPlainPaillier = ::plain::Scheme<NumBigInteger>;
-    pub type NumPackedPaillier = ::packed::Scheme<NumBigInteger, u64>;
+    pub type NumPlainPaillier = ::Scheme<NumBigInteger>;
+    pub type NumPackedPaillier = NumPlainPaillier; //::packed::Scheme<NumBigInteger, u64>;
 
     #[cfg(feature="defaultnum")]
     pub type BigInteger = NumBigInteger;
@@ -102,8 +103,8 @@ pub use self::numinstance::*;
 mod gmpinstance
 {
     pub use arithimpl::gmpimpl::BigInteger as GmpBigInteger;
-    pub type GmpPlainPaillier = ::plain::Scheme<GmpBigInteger>;
-    pub type GmpPackedPaillier = ::packed::Scheme<GmpBigInteger, u64>;
+    pub type GmpPlainPaillier = ::Scheme<GmpBigInteger>;
+    pub type GmpPackedPaillier = GmpPlainPaillier; //::packed::Scheme<GmpBigInteger, u64>;
 
     #[cfg(feature="defaultgmp")]
     pub type BigInteger = GmpBigInteger;

@@ -9,8 +9,8 @@ fn main() {
 #[cfg(feature="keygen")]
 fn main() {
 
-    use paillier::BigInteger;  // could be a specific type such as RampBigInteger as well
-    use paillier::*;
+    use paillier::{Scheme, BigInteger};  // could be a specific type such as RampBigInteger as well
+    use paillier::traits::*;
     type MyScheme = Scheme<BigInteger>;
 
     let (ek, dk) = MyScheme::keypair(100);
