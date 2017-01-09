@@ -346,7 +346,7 @@ mod keygen {
         for<'a>        I: Rem<&'a I, Output=I>,
         for<'a,'b> &'a I: Rem<&'b I, Output=I>
     {
-        fn keypair(bit_length: usize) -> (EncryptionKey<I>, crt::DecryptionKey<I>) {
+        fn keypair_of_size(bit_length: usize) -> (EncryptionKey<I>, crt::DecryptionKey<I>) {
             let p = I::sample_prime(bit_length/2);
             let q = I::sample_prime(bit_length/2);
             let n = &p * &q;
@@ -419,7 +419,7 @@ mod tests {
     #[cfg(feature="keygen")]
     #[test]
     fn test_correct_keygen() {
-        let (ek, dk): (EncryptionKey<I>, _) = Scheme::keypair(2048);
+        let (ek, dk): (EncryptionKey<I>, _) = Scheme::keypair_of_size(2048);
 
         let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);

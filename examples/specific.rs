@@ -13,7 +13,7 @@ fn main() {
     use paillier::traits::*;
     type MyScheme = Scheme<BigInteger>;
 
-    let (ek, dk) = MyScheme::keypair(100);
+    let (ek, dk) = MyScheme::keypair();
 
     let m1 = MyScheme::encode(10);
     let c1 = MyScheme::encrypt(&ek, &m1);

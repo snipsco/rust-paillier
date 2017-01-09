@@ -21,7 +21,7 @@ mod bench {
             DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
-            Scheme::keypair(512);
+            Scheme::keypair_of_size(512);
         });
     }
 
@@ -36,7 +36,7 @@ mod bench {
             DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
-            Scheme::keypair(1024);
+            Scheme::keypair_of_size(1024);
         });
     }
 
@@ -51,7 +51,7 @@ mod bench {
             DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
-            Scheme::keypair(2048);
+            Scheme::keypair_of_size(2048);
         });
     }
 
@@ -66,7 +66,7 @@ mod bench {
             DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
-            Scheme::keypair(3072);
+            Scheme::keypair_of_size(3072);
         });
     }
 

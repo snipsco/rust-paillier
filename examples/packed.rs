@@ -10,8 +10,8 @@ fn main() {
 fn main() {
 
     use paillier::*;
-    
-    let (ek, dk) = Paillier::keypair(100);
+
+    let (ek, dk) = Paillier::keypair();
     let encoder = integral::vector::Encoder::new(3, 16);
 
     let m1 = encoder.encode(&vec![1, 2, 3]);

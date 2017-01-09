@@ -11,22 +11,7 @@ fn main() {
 
     use paillier::*;
 
-    let (ek, dk) = Paillier::keypair(100);
-    // let ek = keypair.encryption_key();
-    // let dk = keypair.decryption_key();
-
-    // let e = IntegralEncoder::new(10, 60);
-    // let m: IntegralPlaintext<Vec<T>> = e.encode(vec![]);
-    // let c: IntegralCiphertext<Vec<T>> = Paillier::encrypt(m);
-    //
-    // mul(IntegralCiphertext<Vec<T>>, IntegralPlaintext<T>) -> IntegralCiphertext<Vec<T>>
-    // mul(IntegralCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<T>
-    //
-    // mul(IntegralPackedCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<Vec<T>>
-    // mul(IntegralCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<T>
-    //
-    // let n = ..
-    // let _ : Vec<T> = e.decode(n)
+    let (ek, dk) = Paillier::keypair();
 
     let m1 = Paillier::encode(10);
     let c1 = Paillier::encrypt(&ek, &m1);
