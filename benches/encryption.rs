@@ -32,7 +32,7 @@ where
         Plaintext<<S as AbstractScheme>::BigInteger>,
         Ciphertext<<S as AbstractScheme>::BigInteger>>,
     S : Decryption<
-        BasicDecryptionKey<<S as AbstractScheme>::BigInteger>,
+        DecryptionKey<<S as AbstractScheme>::BigInteger>,
         Ciphertext<<S as AbstractScheme>::BigInteger>,
         Plaintext<<S as AbstractScheme>::BigInteger>>,
     S : Encoding<u32, Plaintext<<S as AbstractScheme>::BigInteger>>,
@@ -132,10 +132,10 @@ static Q: &'static str = "158741574437007245654463598139927898730476924736461654
 
 pub trait TestKeyGeneration<I>
 {
-    fn test_keypair() -> (EncryptionKey<I>, BasicDecryptionKey<I>);
+    fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>);
 }
 
-use std::ops::{Add, Sub, Mul, Div, Rem};
+use std::ops::{Sub, Mul, Div, Rem};
 use num_traits::{One};
 use paillier::arithimpl::traits::ModularArithmetic;
 
@@ -147,19 +147,17 @@ where
     I: ModularArithmetic,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
     for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
-    for<'a, 'b> &'a I: Add<&'b I, Output=I>,
-                   I: Mul<Output=I>,
-    for<'a>    &'a I: Mul<I, Output=I>,
-    for<'a,'b> &'a I: Div<&'b I, Output=I>,
-    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>
+    for<'b>         I: Div<&'b I, Output=I>,
+    for<'a>     &'a I: Sub<I, Output=I>,
+    for<'b>         I: Sub<&'b I, Output=I>,
+    for<'b>         I: Rem<&'b I, Output=I>,
  {
-    fn test_keypair() -> (EncryptionKey<I>, BasicDecryptionKey<I>) {
+    fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>) {
         let ref p = str::parse(P).unwrap();
         let ref q = str::parse(Q).unwrap();
         let ref n = p * q;
         let ek = EncryptionKey::from(n);
-        let dk = BasicDecryptionKey::from((p, q));
+        let dk = DecryptionKey::from((p, q));
         (ek, dk)
     }
 }

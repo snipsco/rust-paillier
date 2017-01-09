@@ -142,13 +142,13 @@ where
 }
 
 
-mod basic_decryption {
+pub mod standard {
 
     use super::*;
 
     /// Decryption key that should be kept private.
     #[derive(Debug,Clone)]
-    pub struct BasicDecryptionKey<I> {
+    pub struct DecryptionKey<I> {
         p: I,  // first prime
         q: I,  // second prime
         n: I,  // the modulus (also in public key)
@@ -157,7 +157,7 @@ mod basic_decryption {
         mu: I,     // fixed at lambda^{-1}
     }
 
-    impl <'p, 'q, I> From<(&'p I, &'q I)> for BasicDecryptionKey<I>
+    impl <'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
     where
         I: One,
         I: Clone,
@@ -165,13 +165,13 @@ mod basic_decryption {
         for<'a,'b> &'a I: Mul<&'b I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     {
-        fn from((p, q): (&I, &I)) -> BasicDecryptionKey<I> {
+        fn from((p, q): (&I, &I)) -> DecryptionKey<I> {
             let ref one = I::one();
             let modulus = p * q;
             let nn = &modulus * &modulus;
             let lambda = (p - one) * (q - one);
             let mu = I::modinv(&lambda, &modulus);
-            BasicDecryptionKey {
+            DecryptionKey {
                 p: p.clone(),
                 q: q.clone(),
                 n: modulus,
@@ -182,7 +182,7 @@ mod basic_decryption {
         }
     }
 
-    impl <I> Decryption<BasicDecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+    impl <I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
         I: ModularArithmetic,
@@ -191,7 +191,7 @@ mod basic_decryption {
         for<'b>        I: Div<&'b I, Output=I>,
         for<'a>        I: Rem<&'a I, Output=I>,
     {
-        fn decrypt(dk: &BasicDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
+        fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
             let u = I::modpow(&c.0, &dk.lambda, &dk.nn);
             let m = (l(&u, &dk.n) * &dk.mu) % &dk.n;
             Plaintext(m)
@@ -199,16 +199,15 @@ mod basic_decryption {
     }
 
 }
-pub use self::basic_decryption::*;
 
 
-mod crt_decryption {
+pub mod crt {
 
     use super::*;
 
     /// Decryption key that should be kept private.
     #[derive(Debug,Clone)]
-    pub struct CrtDecryptionKey<I> {
+    pub struct DecryptionKey<I> {
         p: I,  // first prime
         pp: I,
         pminusone: I,
@@ -221,7 +220,7 @@ mod crt_decryption {
         n: I,  // the modulus (also in public key)
     }
 
-    impl <'p, 'q, I> From<(&'p I, &'q I)> for CrtDecryptionKey<I>
+    impl <'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
     where
         I: Clone,
         I: One,
@@ -232,11 +231,11 @@ mod crt_decryption {
         for<'b>         I: Rem<&'b I, Output=I>,
         for<'b>         I: Div<&'b I, Output=I>,
     {
-        fn from((p, q): (&I, &I)) -> CrtDecryptionKey<I> {
+        fn from((p, q): (&I, &I)) -> DecryptionKey<I> {
             let ref pp = p * p;
             let ref qq = q * q;
             let ref n = p * q;
-            CrtDecryptionKey {
+            DecryptionKey {
                 p: p.clone(),
                 pp: pp.clone(),
                 pminusone: p - I::one(),
@@ -254,7 +253,7 @@ mod crt_decryption {
         }
     }
 
-    impl <I> Decryption<CrtDecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+    impl <I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
         I: ModularArithmetic,
@@ -266,7 +265,7 @@ mod crt_decryption {
         for<'b>        I: Div<&'b I, Output=I>,
         for<'a>        I: Rem<&'a I, Output=I>,
     {
-        fn decrypt(dk: &CrtDecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
+        fn decrypt(dk: &DecryptionKey<I>, c: &Ciphertext<I>) -> Plaintext<I> {
             // process using p
             let cp = I::modpow(&c.0, &dk.pminusone, &dk.pp);
             let lp = l(&cp, &dk.p);
@@ -303,7 +302,7 @@ mod crt_decryption {
         hp
     }
 
-    fn crt<I>(mp: &I, mq: &I, dk: &CrtDecryptionKey<I>) -> I
+    fn crt<I>(mp: &I, mq: &I, dk: &DecryptionKey<I>) -> I
     where
         for<'a>    &'a I: Add<I, Output=I>,
         for<'a,'b> &'a I: Sub<&'b I, Output=I>,
@@ -317,7 +316,6 @@ mod crt_decryption {
     }
 
 }
-pub use self::crt_decryption::*;
 
 
 #[cfg(feature="keygen")]
@@ -326,7 +324,7 @@ mod keygen {
     use super::*;
     use arithimpl::primes::*;
 
-    impl <I> KeyGeneration<EncryptionKey<I>, CrtDecryptionKey<I>> for Scheme<I>
+    impl <I> KeyGeneration<EncryptionKey<I>, crt::DecryptionKey<I>> for Scheme<I>
     where
         I: From<u64>,
         I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -348,12 +346,12 @@ mod keygen {
         for<'a>        I: Rem<&'a I, Output=I>,
         for<'a,'b> &'a I: Rem<&'b I, Output=I>
     {
-        fn keypair(bit_length: usize) -> (EncryptionKey<I>, CrtDecryptionKey<I>) {
+        fn keypair(bit_length: usize) -> (EncryptionKey<I>, crt::DecryptionKey<I>) {
             let p = I::sample_prime(bit_length/2);
             let q = I::sample_prime(bit_length/2);
             let n = &p * &q;
             let ek = EncryptionKey::from(&n);
-            let dk = CrtDecryptionKey::from((&p, &q));
+            let dk = crt::DecryptionKey::from((&p, &q));
             (ek, dk)
         }
     }
@@ -371,12 +369,12 @@ mod tests {
     use super::I;
     use ::basic::*;
 
-    fn test_keypair() -> (EncryptionKey<I>, CrtDecryptionKey<I>) {
+    fn test_keypair() -> (EncryptionKey<I>, crt::DecryptionKey<I>) {
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
         let q = str::parse("158741574437007245654463598139927898730476924736461654463975966787719309357536545869203069369466212089132653564188443272208127277664424448947476335413293018778018615899291704693105620242763173357203898195318179150836424196645745308205164116144020613415407736216097185962171301808761138424668335445923774195463").unwrap();
         let n = &p * &q;
         let ek = EncryptionKey::from(&n);
-        let dk = CrtDecryptionKey::from((&p, &q));
+        let dk = crt::DecryptionKey::from((&p, &q));
         (ek, dk)
     }
 
@@ -419,14 +417,9 @@ mod tests {
     }
 
     #[cfg(feature="keygen")]
-    fn test_keypair_sized(bitsize: usize) -> (EncryptionKey<I>, CrtDecryptionKey<I>) {
-        Scheme::keypair(bitsize)
-    }
-
-    #[cfg(feature="keygen")]
     #[test]
     fn test_correct_keygen() {
-        let (ek, dk) = test_keypair_sized(2048);
+        let (ek, dk): (EncryptionKey<I>, _) = Scheme::keypair(2048);
 
         let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);

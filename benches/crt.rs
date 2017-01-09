@@ -101,7 +101,7 @@ pub mod bench
     pub fn bench_decryption_crt_small(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
         let ek = basic::EncryptionKey::from(&n);
-        let dk = basic::CrtDecryptionKey::from((&p, &q));
+        let dk = basic::crt::DecryptionKey::from((&p, &q));
 
         let m = Scheme::encode(10);
         let c = Scheme::encrypt(&ek, &m);
@@ -113,7 +113,7 @@ pub mod bench
     pub fn bench_decryption_crt_random(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
         let ek = basic::EncryptionKey::from(&n);
-        let dk = basic::CrtDecryptionKey::from((&p, &q));
+        let dk = basic::crt::DecryptionKey::from((&p, &q));
 
         use arithimpl::traits::Samplable;
         let m = basic::Plaintext(<S as AbstractScheme>::BigInteger::sample_below(&n));
@@ -123,10 +123,10 @@ pub mod bench
         });
     }
 
-    pub fn bench_decryption_basic_small(b: &mut Bencher) {
+    pub fn bench_decryption_standard_small(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
         let ek = basic::EncryptionKey::from(&n);
-        let dk = basic::BasicDecryptionKey::from((&p, &q));
+        let dk = basic::standard::DecryptionKey::from((&p, &q));
 
         let m = Scheme::encode(10);
         let c = Scheme::encrypt(&ek, &m);
@@ -135,10 +135,10 @@ pub mod bench
         });
     }
 
-    pub fn bench_decryption_basic_random(b: &mut Bencher) {
+    pub fn bench_decryption_standard_random(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
         let ek = basic::EncryptionKey::from(&n);
-        let dk = basic::BasicDecryptionKey::from((&p, &q));
+        let dk = basic::standard::DecryptionKey::from((&p, &q));
 
         use arithimpl::traits::Samplable;
         let m = basic::Plaintext(<S as AbstractScheme>::BigInteger::sample_below(&n));
@@ -151,8 +151,8 @@ pub mod bench
     benchmark_group!(group,
         self::bench_decryption_crt_small,
         self::bench_decryption_crt_random,
-        self::bench_decryption_basic_small,
-        self::bench_decryption_basic_random
+        self::bench_decryption_standard_small,
+        self::bench_decryption_standard_random
     );
 
 });

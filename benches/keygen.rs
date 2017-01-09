@@ -7,13 +7,18 @@ mod bench {
 
     use bencher::Bencher;
     use paillier::RampPlainPaillier;
-    use paillier::plain::{self, KeyGeneration};
+    use paillier::*;
+    use paillier::basic::*;
 
     pub fn bench_key_generation_512<Scheme>(b: &mut Bencher)
     where
-        Scheme : plain::AbstractScheme,
-        Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
-        Scheme : KeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+        Scheme : AbstractScheme,
+        Scheme : Encoding<
+            usize,
+            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+        Scheme : KeyGeneration<
+            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
             Scheme::keypair(512);
@@ -22,9 +27,13 @@ mod bench {
 
     pub fn bench_key_generation_1024<Scheme>(b: &mut Bencher)
     where
-        Scheme : plain::AbstractScheme,
-        Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
-        Scheme : KeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+        Scheme : AbstractScheme,
+        Scheme : Encoding<
+            usize,
+            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+        Scheme : KeyGeneration<
+            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
             Scheme::keypair(1024);
@@ -33,9 +42,13 @@ mod bench {
 
     pub fn bench_key_generation_2048<Scheme>(b: &mut Bencher)
     where
-        Scheme : plain::AbstractScheme,
-        Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
-        Scheme : KeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+        Scheme : AbstractScheme,
+        Scheme : Encoding<
+            usize,
+            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+        Scheme : KeyGeneration<
+            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
             Scheme::keypair(2048);
@@ -44,22 +57,18 @@ mod bench {
 
     pub fn bench_key_generation_3072<Scheme>(b: &mut Bencher)
     where
-        Scheme : plain::AbstractScheme,
-        Scheme : plain::Encode<usize, BigInteger=<Scheme as plain::AbstractScheme>::BigInteger>,
-        Scheme : KeyGeneration<<Scheme as plain::AbstractScheme>::BigInteger>
+        Scheme : AbstractScheme,
+        Scheme : Encoding<
+            usize,
+            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
+        Scheme : KeyGeneration<
+            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
+            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
     {
         b.iter(|| {
             Scheme::keypair(3072);
         });
     }
-
-    /*
-    impl TestKeyGeneration for PlainPaillier {
-        fn test_keypair(bitsize: usize) -> (<Self as PartiallyHomomorphicScheme>::EncryptionKey, <Self as PartiallyHomomorphicScheme>::DecryptionKey) {
-            <Self as KeyGeneration>::keypair(bitsize)
-        }
-    }
-    */
 
     benchmark_group!(ramp,
         self::bench_key_generation_512<RampPlainPaillier>,

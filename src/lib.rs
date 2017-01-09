@@ -33,14 +33,14 @@ macro_rules! bigint {
     };
 }
 
-pub mod traits;
 pub mod arithimpl;
+pub mod traits;
 pub mod basic;
 pub mod integral;
 
-pub use basic::{EncryptionKey, BasicDecryptionKey, CrtDecryptionKey};
+pub use basic::EncryptionKey;
+pub use basic::crt::DecryptionKey as DecryptionKey;  // default decryption key
 
-// pub use keys::*;
 pub use traits::*;
 
 
