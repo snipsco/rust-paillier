@@ -33,9 +33,18 @@ macro_rules! bigint {
     };
 }
 
+pub mod traits;
 pub mod arithimpl;
 pub mod plain;
 pub mod packed;
+
+pub use traits::*;
+
+
+/// Implementation of the Paillier operations, such as encryption, decryption, and addition.
+pub struct Scheme<I> {
+    junk: ::std::marker::PhantomData<I>
+}
 
 
 /*************************
@@ -46,8 +55,9 @@ pub mod packed;
 mod rampinstance
 {
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
-    pub type RampPlainPaillier = ::plain::Scheme<RampBigInteger>;
-    pub type RampPackedPaillier = ::packed::Scheme<RampBigInteger, u64>;
+    pub type RampPlainPaillier = ::Scheme<RampBigInteger>;
+    // pub type RampPackedPaillier = ::packed::Scheme<RampBigInteger>;
+    pub type RampPackedPaillier = RampPlainPaillier;
 
     #[cfg(feature="defaultramp")]
     pub type BigInteger = RampBigInteger;

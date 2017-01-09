@@ -9,18 +9,24 @@ fn main() {
 #[cfg(feature="keygen")]
 fn main() {
 
-    use paillier::PlainPaillier;
-    use paillier::plain::*;
+    use paillier::*;
 
     let (ek, dk) = PlainPaillier::keypair(100);
     // let ek = keypair.encryption_key();
     // let dk = keypair.decryption_key();
 
-    let e = RationalEncoder::new(10, 60);
-    let m: RationalPlaintext<T> = e.encode(vec![]);
-    let c: RationalCiphertext<T> = Paillier::encrypt(m);
-    let n = ..
-    let _ : Vec<T> = e.decode(n)
+    // let e = IntegralEncoder::new(10, 60);
+    // let m: IntegralPlaintext<Vec<T>> = e.encode(vec![]);
+    // let c: IntegralCiphertext<Vec<T>> = Paillier::encrypt(m);
+    //
+    // mul(IntegralCiphertext<Vec<T>>, IntegralPlaintext<T>) -> IntegralCiphertext<Vec<T>>
+    // mul(IntegralCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<T>
+    //
+    // mul(IntegralPackedCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<Vec<T>>
+    // mul(IntegralCiphertext<T>, IntegralPlaintext<T>) -> IntegralCiphertext<T>
+    //
+    // let n = ..
+    // let _ : Vec<T> = e.decode(n)
 
     let m1 = PlainPaillier::encode(10);
     let c1 = PlainPaillier::encrypt(&ek, &m1);
