@@ -32,60 +32,60 @@ impl<I> Coding<I> {
 }
 
 
-impl<I> Encoder<usize> for Coding<I>
-where
-    I: From<usize>,
-{
-    type Target=scalar::Plaintext<I, usize>;
-    fn encode(&self, x: &usize) -> Self::Target {
-        scalar::Plaintext {
-            data: basic::Plaintext(I::from(*x)),
-            _phantom: PhantomData,
-        }
-    }
-}
-
-
-impl<I> Encoder<u8> for Coding<I>
-where
-    I: From<u8>,
-{
-    type Target=scalar::Plaintext<I, u8>;
-    fn encode(&self, x: &u8) -> Self::Target {
-        scalar::Plaintext {
-            data: basic::Plaintext(I::from(*x)),
-            _phantom: PhantomData,
-        }
-    }
-}
-
-
-impl<I> Encoder<u16> for Coding<I>
-where
-    I: From<u16>,
-{
-    type Target=scalar::Plaintext<I, u16>;
-    fn encode(&self, x: &u16) -> Self::Target {
-        scalar::Plaintext {
-            data: basic::Plaintext(I::from(*x)),
-            _phantom: PhantomData,
-        }
-    }
-}
-
-
-impl<I> Encoder<u32> for Coding<I>
-where
-    I: From<u32>,
-{
-    type Target=scalar::Plaintext<I, u32>;
-    fn encode(&self, x: &u32) -> Self::Target {
-        scalar::Plaintext {
-            data: basic::Plaintext(I::from(*x)),
-            _phantom: PhantomData,
-        }
-    }
-}
+// impl<I> Encoder<usize> for Coding<I>
+// where
+//     I: From<usize>,
+// {
+//     type Target=scalar::Plaintext<I, usize>;
+//     fn encode(&self, x: &usize) -> Self::Target {
+//         scalar::Plaintext {
+//             data: basic::Plaintext(I::from(*x)),
+//             _phantom: PhantomData,
+//         }
+//     }
+// }
+//
+//
+// impl<I> Encoder<u8> for Coding<I>
+// where
+//     I: From<u8>,
+// {
+//     type Target=scalar::Plaintext<I, u8>;
+//     fn encode(&self, x: &u8) -> Self::Target {
+//         scalar::Plaintext {
+//             data: basic::Plaintext(I::from(*x)),
+//             _phantom: PhantomData,
+//         }
+//     }
+// }
+//
+//
+// impl<I> Encoder<u16> for Coding<I>
+// where
+//     I: From<u16>,
+// {
+//     type Target=scalar::Plaintext<I, u16>;
+//     fn encode(&self, x: &u16) -> Self::Target {
+//         scalar::Plaintext {
+//             data: basic::Plaintext(I::from(*x)),
+//             _phantom: PhantomData,
+//         }
+//     }
+// }
+//
+//
+// impl<I> Encoder<u32> for Coding<I>
+// where
+//     I: From<u32>,
+// {
+//     type Target=scalar::Plaintext<I, u32>;
+//     fn encode(&self, x: &u32) -> Self::Target {
+//         scalar::Plaintext {
+//             data: basic::Plaintext(I::from(*x)),
+//             _phantom: PhantomData,
+//         }
+//     }
+// }
 
 
 impl<I> Encoder<u64> for Coding<I>
@@ -124,45 +124,45 @@ where
 }
 
 
-impl<I> Decoder<usize> for Coding<I>
-where
-    usize: ConvertFrom<I>,
-{
-    type Source=scalar::Plaintext<I, usize>;
-    fn decode(&self, x: &scalar::Plaintext<I, usize>) -> usize {
-        usize::_from(&x.data.0)
-    }
-}
-
-impl<I> Decoder<u8> for Coding<I>
-where
-    u8: ConvertFrom<I>,
-{
-    type Source=scalar::Plaintext<I, u8>;
-    fn decode(&self, x: &scalar::Plaintext<I, u8>) -> u8 {
-        u8::_from(&x.data.0)
-    }
-}
-
-impl<I> Decoder<u16> for Coding<I>
-where
-    u16: ConvertFrom<I>,
-{
-    type Source=scalar::Plaintext<I, u16>;
-    fn decode(&self, x: &scalar::Plaintext<I, u16>) -> u16 {
-        u16::_from(&x.data.0)
-    }
-}
-
-impl<I> Decoder<u32> for Coding<I>
-where
-    u32: ConvertFrom<I>,
-{
-    type Source=scalar::Plaintext<I, u32>;
-    fn decode(&self, x: &scalar::Plaintext<I, u32>) -> u32 {
-        u32::_from(&x.data.0)
-    }
-}
+// impl<I> Decoder<usize> for Coding<I>
+// where
+//     usize: ConvertFrom<I>,
+// {
+//     type Source=scalar::Plaintext<I, usize>;
+//     fn decode(&self, x: &scalar::Plaintext<I, usize>) -> usize {
+//         usize::_from(&x.data.0)
+//     }
+// }
+//
+// impl<I> Decoder<u8> for Coding<I>
+// where
+//     u8: ConvertFrom<I>,
+// {
+//     type Source=scalar::Plaintext<I, u8>;
+//     fn decode(&self, x: &scalar::Plaintext<I, u8>) -> u8 {
+//         u8::_from(&x.data.0)
+//     }
+// }
+//
+// impl<I> Decoder<u16> for Coding<I>
+// where
+//     u16: ConvertFrom<I>,
+// {
+//     type Source=scalar::Plaintext<I, u16>;
+//     fn decode(&self, x: &scalar::Plaintext<I, u16>) -> u16 {
+//         u16::_from(&x.data.0)
+//     }
+// }
+//
+// impl<I> Decoder<u32> for Coding<I>
+// where
+//     u32: ConvertFrom<I>,
+// {
+//     type Source=scalar::Plaintext<I, u32>;
+//     fn decode(&self, x: &scalar::Plaintext<I, u32>) -> u32 {
+//         u32::_from(&x.data.0)
+//     }
+// }
 
 impl<I> Decoder<u64> for Coding<I>
 where

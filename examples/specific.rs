@@ -19,10 +19,10 @@ fn main() {
 
     let eek = ek.with_encoder(&code);
 
-    let c1 = MyScheme::encrypt(&eek, &10_u64);
-    let c2 = MyScheme::encrypt(&eek, &20_u64);
-    let c3 = MyScheme::encrypt(&eek, &30_u64);
-    let c4 = MyScheme::encrypt(&eek, &40_u64);
+    let c1 = MyScheme::encrypt(&eek, &10);
+    let c2 = MyScheme::encrypt(&eek, &20);
+    let c3 = MyScheme::encrypt(&eek, &30);
+    let c4 = MyScheme::encrypt(&eek, &40);
 
     // add up all four encryptions
     let c = MyScheme::add(&ek,
