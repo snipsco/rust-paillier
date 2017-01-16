@@ -13,7 +13,7 @@ fn main() {
 
     let (ek, dk) = Paillier::keypair();
 
-    let m1 = Paillier::encode(10);
+    let m1 = 10;
     let c1 = Paillier::encrypt(&ek, &m1);
 
     let m2 = Paillier::encode(20);;

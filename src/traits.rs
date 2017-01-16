@@ -56,11 +56,35 @@ pub trait Rerandomisation<EK, CT> {
 /// Encoding of e.g. primitive values as plaintexts.
 pub trait Encoding<T, P>
 {
-    fn encode(x: T) -> P;
+    fn encode(x: &T) -> P;
 }
 
 /// Decoding of e.g. primitive values as plaintexts.
 pub trait Decoding<P, T>
 {
-    fn decode(y: P) -> T;
+    fn decode(y: &P) -> T;
+}
+
+pub trait Encoder<T, P>
+{
+    fn encode(&self, x: &T) -> P;
+}
+
+pub trait Decoder<P, T>
+{
+    fn decode(&self, y: &P) -> T;
+}
+
+impl<O, T, P> Encoder<T, P> for O
+where
+    O: Encoding<T, P>
+{
+    fn encode(&self, x: &T) -> P { O::encode(x) }
+}
+
+impl<O, P, T> Decoder<P, T> for O
+where
+    O: Decoding<P, T>
+{
+    fn decode(&self, y: &P) -> T { O::decode(y) }
 }

@@ -21,7 +21,7 @@ pub struct EncryptionKey<I> {
     nn: I, // the modulus squared
 }
 
-impl <'i, I> From<&'i I> for EncryptionKey<I>
+impl<'i, I> From<&'i I> for EncryptionKey<I>
 where
     I: Clone,
     for<'a, 'b> &'a I: Mul<&'b I, Output=I>,
@@ -35,6 +35,64 @@ where
 }
 
 
+mod with_encoding {
+
+    use super::*;
+
+    pub struct EncodingEncryptionKey<'a, 'b, EK: 'a, M: 'b, PT: 'b> {
+        key: &'a EK,
+        encoder: &'b Encoder<M, PT>
+    }
+
+    impl<I> EncryptionKey<I>
+    {
+        pub fn with_encoder<'a, 'b, M, PT>(&'a self, encoder: &'b Encoder<M, PT>) -> EncodingEncryptionKey<'a, 'b, EncryptionKey<I>, M, PT> {
+            EncodingEncryptionKey {
+                key: self,
+                encoder: encoder
+            }
+        }
+    }
+
+    impl<'a, 'b, M: 'b, PT: 'b, CT, S, EK: 'a> Encryption<EncodingEncryptionKey<'a, 'b, EK, M, PT>, M, CT> for S
+    where
+        S : Encryption<EK, PT, CT>
+    {
+        fn encrypt(ek: &EncodingEncryptionKey<EK, M, PT>, m: &M) -> CT {
+            S::encrypt(ek.key, &ek.encoder.encode(m))
+        }
+    }
+
+    // pub struct DecodingDecryptionKey<'a, 'b, DK: 'a, PT: 'b, M: 'b> {
+    //     key: &'a DK,
+    //     decoder: &'b Decoder<PT, M>
+    // }
+    //
+    // impl<I> crt::DecryptionKey<I>
+    // {
+    //     pub fn with_decoder<'a, 'b, PT, M>(&'a self, decoder: &'b Decoder<PT, M>) -> DecodingDecryptionKey<'a, 'b, crt::DecryptionKey<I>, PT, M> {
+    //         DecodingDecryptionKey {
+    //             key: self,
+    //             decoder: decoder
+    //         }
+    //     }
+    // }
+    //
+    // impl<'a, 'b, PT: 'b, M: 'b, CT, S, DK: 'a> Decryption<DecodingDecryptionKey<'a, 'b, DK, PT, M>, CT, M> for S
+    // where
+    //     S : Decryption<DK, CT, PT>
+    // {
+    //     fn decrypt(dk: &DecodingDecryptionKey<DK, PT, M>, c: &CT) -> M {
+    //         dk.encoder.encode(S::decrypt(dk.key, c))
+    //     }
+    // }
+
+}
+pub use self::with_encoding::*;
+
+
+
+
 /// Representation of unencrypted message.
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I>(pub I);
@@ -44,7 +102,7 @@ pub struct Plaintext<I>(pub I);
 pub struct Ciphertext<I>(pub I);
 
 
-impl <I, T> From<T> for Plaintext<I>
+impl<I, T> From<T> for Plaintext<I>
 where
     T: Copy,  // marker to avoid infinite loop by excluding Plaintext
     I: From<T>,
@@ -55,26 +113,28 @@ where
 }
 
 
-impl <I, T> Encoding<T, Plaintext<I>> for Scheme<I>
+impl<I, T> Encoding<T, Plaintext<I>> for Scheme<I>
 where
+    T: Copy,
     Plaintext<I> : From<T>,
 {
-    fn encode(x: T) -> Plaintext<I> {
-        Plaintext::from(x)
+    fn encode(x: &T) -> Plaintext<I> {
+        Plaintext::from(*x)
     }
 }
 
-impl <I, T> Decoding<Plaintext<I>, T> for Scheme<I>
+impl<I, T> Decoding<Plaintext<I>, T> for Scheme<I>
 where
-    Plaintext<I> : Into<T>,
+    Plaintext<I>: Copy,
+    T: From<Plaintext<I>>,
 {
-    fn decode(x: Plaintext<I>) -> T {
-        Plaintext::into(x)
+    fn decode(x: &Plaintext<I>) -> T {
+        T::from(*x)
     }
 }
 
 
-impl <I> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
+impl<I> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
 where
     I: Samplable,
     I: ModularArithmetic,
@@ -89,7 +149,7 @@ where
 }
 
 
-impl <I> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
+impl<I> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
 where
     I: One,
     I: Samplable,
@@ -108,7 +168,7 @@ where
 }
 
 
-impl <I> Addition<EncryptionKey<I>, Ciphertext<I>, Ciphertext<I>, Ciphertext<I>> for Scheme<I>
+impl<I> Addition<EncryptionKey<I>, Ciphertext<I>, Ciphertext<I>, Ciphertext<I>> for Scheme<I>
 where
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
     for<'b>        I: Rem<&'b I, Output=I>,
@@ -120,7 +180,7 @@ where
 }
 
 
-impl <I> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
+impl<I> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
 where
     I: ModularArithmetic,
 {
@@ -157,7 +217,7 @@ pub mod standard {
         mu: I,     // fixed at lambda^{-1}
     }
 
-    impl <'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
+    impl<'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
     where
         I: One,
         I: Clone,
@@ -182,7 +242,7 @@ pub mod standard {
         }
     }
 
-    impl <I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+    impl<I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
         I: ModularArithmetic,
@@ -220,7 +280,7 @@ pub mod crt {
         n: I,  // the modulus (also in public key)
     }
 
-    impl <'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
+    impl<'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
     where
         I: Clone,
         I: One,
@@ -253,7 +313,7 @@ pub mod crt {
         }
     }
 
-    impl <I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+    impl<I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
     where
         I: One,
         I: ModularArithmetic,
@@ -324,7 +384,7 @@ mod keygen {
     use super::*;
     use arithimpl::primes::*;
 
-    impl <I> KeyGeneration<EncryptionKey<I>, crt::DecryptionKey<I>> for Scheme<I>
+    impl<I> KeyGeneration<EncryptionKey<I>, crt::DecryptionKey<I>> for Scheme<I>
     where
         I: From<u64>,
         I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,

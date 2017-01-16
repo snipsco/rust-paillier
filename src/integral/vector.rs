@@ -19,21 +19,21 @@ pub struct VectorPlaintext<I, T> {
 }
 
 
-pub struct Encoder<I, T> {
+pub struct Encoding<I, T> {
     component_count: usize,
     component_size: usize,  // in bits
     _phantom: PhantomData<(I, T)>
 }
 
-impl<I, T> Encoder<I, T> {
-    pub fn default() -> Encoder<I, T> {
+impl<I, T> Encoding<I, T> {
+    pub fn default() -> Encoding<I, T> {
         Self::new(10, 64)
     }
 
-    pub fn new(component_count: usize, component_size: usize) -> Encoder<I, T> {
+    pub fn new(component_count: usize, component_size: usize) -> Encoding<I, T> {
         use std::mem::size_of;
         assert!(size_of::<T>() <= component_size);
-        Encoder {
+        Encoding {
             component_count: component_count,
             component_size: component_size,
             _phantom: PhantomData,
@@ -41,7 +41,7 @@ impl<I, T> Encoder<I, T> {
     }
 }
 
-impl<I, T> Encoder<I, T>
+impl<I, T> ::traits::Encoder<Vec<T>, VectorPlaintext<I, T>> for Encoding<I, T>
 where
     T: One,
     T: Clone,
@@ -57,7 +57,7 @@ where
     for<'a,'b> &'a I: Rem<&'b I, Output=I>,
     for<'a> &'a    I: Shr<usize, Output=I>,
 {
-    pub fn encode(&self, x: &Vec<T>) -> VectorPlaintext<I, T> {
+    fn encode(&self, x: &Vec<T>) -> VectorPlaintext<I, T> {
         VectorPlaintext {
             data: basic::Plaintext(pack(x, self.component_count, self.component_size)),
             component_count: self.component_count,
@@ -65,8 +65,25 @@ where
             _phantom: PhantomData,
         }
     }
+}
 
-    pub fn decode(&self, x: &VectorPlaintext<I, T>) -> Vec<T> {
+impl<I, T> ::traits::Decoder<VectorPlaintext<I, T>, Vec<T>> for Encoding<I, T>
+where
+    T: One,
+    T: Clone,
+    I: From<T>,
+    T: Shl<usize, Output=T>,
+    T: ConvertFrom<I>,
+    T: Debug,
+    I: One,
+    I: Clone,
+    I: From<T>,
+    I: Shl<usize, Output=I>,
+    I: Add<I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
+    for<'a> &'a    I: Shr<usize, Output=I>,
+{
+    fn decode(&self, x: &VectorPlaintext<I, T>) -> Vec<T> {
         unpack(x.data.0.clone(), self.component_count, self.component_size)
     }
 }
@@ -82,12 +99,12 @@ pub struct VectorCiphertext<I, T> {
 }
 
 
-impl <I, T, S, EK> Encryption<EK, VectorPlaintext<I, T>, VectorCiphertext<I, T>> for S
+impl <I, T, S> Encryption<basic::EncryptionKey<I>, VectorPlaintext<I, T>, VectorCiphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
+    S: Encryption<basic::EncryptionKey<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn encrypt(ek: &EK, m: &VectorPlaintext<I, T>) -> VectorCiphertext<I, T> {
+    fn encrypt(ek: &basic::EncryptionKey<I>, m: &VectorPlaintext<I, T>) -> VectorCiphertext<I, T> {
         VectorCiphertext {
             data: S::encrypt(&ek, &m.data),
             component_count: m.component_count,
@@ -208,7 +225,7 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoder::new(3, 64);
+        let encoder = Encoding::new(3, 64);
         let m = vec![1, 2, 3];
 
         let p = encoder.encode(&m);
@@ -224,7 +241,7 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoder::new(3, 16);
+        let encoder = Encoding::new(3, 16);
 
         let m1 = encoder.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
@@ -240,7 +257,7 @@ mod tests {
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoder::new(3, 16);
+        let encoder = Encoding::new(3, 16);
 
         let m1 = encoder.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);

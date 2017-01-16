@@ -21,15 +21,29 @@ where
 pub struct ScalarCiphertext<I>(basic::Ciphertext<I>);
 
 
-impl <I, S, EK> Encryption<EK, ScalarPlaintext<I>, ScalarCiphertext<I>> for S
+// Note that it is overly specific (could have EK type parameter) to avoid conflicting implementations
+impl<I, S> Encryption<basic::EncryptionKey<I>, ScalarPlaintext<I>, ScalarCiphertext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
+    S: Encryption<basic::EncryptionKey<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn encrypt(ek: &EK, m: &ScalarPlaintext<I>) -> ScalarCiphertext<I> {
+    fn encrypt(ek: &basic::EncryptionKey<I>, m: &ScalarPlaintext<I>) -> ScalarCiphertext<I> {
         ScalarCiphertext(S::encrypt(&ek, &m.0))
     }
 }
+
+
+// impl<I, S, EK, T> Encryption<EK, T, ScalarCiphertext<I>> for S
+// where
+//     S: AbstractScheme<BigInteger=I>,
+//     for<'t> S: Encoding<&'t T, ScalarPlaintext<I>>,
+//     S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
+// {
+//     fn encrypt(ek: &EK, m: &T) -> ScalarCiphertext<I> {
+//         let encoded = S::encode(m);
+//         ScalarCiphertext(S::encrypt(&ek, &encoded.0))
+//     }
+// }
 
 
 impl <I, S, DK> Decryption<DK, ScalarCiphertext<I>, ScalarPlaintext<I>> for S
