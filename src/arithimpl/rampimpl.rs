@@ -42,6 +42,30 @@ impl ModularArithmetic for ramp::Int {
     }
 }
 
+impl ConvertFrom<ramp::Int> for usize {
+    fn _from(x: &ramp::Int) -> usize {
+        usize::from(x)
+    }
+}
+
+impl ConvertFrom<ramp::Int> for u8 {
+    fn _from(x: &ramp::Int) -> u8 {
+        u8::from(x)
+    }
+}
+
+impl ConvertFrom<ramp::Int> for u16 {
+    fn _from(x: &ramp::Int) -> u16 {
+        u16::from(x)
+    }
+}
+
+impl ConvertFrom<ramp::Int> for u32 {
+    fn _from(x: &ramp::Int) -> u32 {
+        u32::from(x)
+    }
+}
+
 impl ConvertFrom<ramp::Int> for u64 {
     fn _from(x: &ramp::Int) -> u64 {
         u64::from(x)

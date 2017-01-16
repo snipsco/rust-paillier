@@ -39,25 +39,25 @@ where
 }
 
 
-impl<I, T> Encoding<T, Plaintext<I>> for Scheme<I>
-where
-    T: Copy,
-    Plaintext<I> : From<T>,
-{
-    fn encode(x: &T) -> Plaintext<I> {
-        Plaintext::from(*x)
-    }
-}
-
-impl<I, T> Decoding<Plaintext<I>, T> for Scheme<I>
-where
-    Plaintext<I>: Copy,
-    T: From<Plaintext<I>>,
-{
-    fn decode(x: &Plaintext<I>) -> T {
-        T::from(*x)
-    }
-}
+// impl<I, T> Encoding<T, Plaintext<I>> for Scheme<I>
+// where
+//     T: Copy,
+//     Plaintext<I> : From<T>,
+// {
+//     fn encode(x: &T) -> Plaintext<I> {
+//         Plaintext::from(*x)
+//     }
+// }
+//
+// impl<I, T> Decoding<Plaintext<I>, T> for Scheme<I>
+// where
+//     Plaintext<I>: Copy,
+//     T: From<Plaintext<I>>,
+// {
+//     fn decode(x: &Plaintext<I>) -> T {
+//         T::from(*x)
+//     }
+// }
 
 
 fn l<I>(u: &I, n: &I) -> I

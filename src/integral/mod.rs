@@ -124,6 +124,46 @@ where
 }
 
 
+impl<I> Decoder<usize> for Coding<I>
+where
+    usize: ConvertFrom<I>,
+{
+    type Source=scalar::Plaintext<I, usize>;
+    fn decode(&self, x: &scalar::Plaintext<I, usize>) -> usize {
+        usize::_from(&x.data.0)
+    }
+}
+
+impl<I> Decoder<u8> for Coding<I>
+where
+    u8: ConvertFrom<I>,
+{
+    type Source=scalar::Plaintext<I, u8>;
+    fn decode(&self, x: &scalar::Plaintext<I, u8>) -> u8 {
+        u8::_from(&x.data.0)
+    }
+}
+
+impl<I> Decoder<u16> for Coding<I>
+where
+    u16: ConvertFrom<I>,
+{
+    type Source=scalar::Plaintext<I, u16>;
+    fn decode(&self, x: &scalar::Plaintext<I, u16>) -> u16 {
+        u16::_from(&x.data.0)
+    }
+}
+
+impl<I> Decoder<u32> for Coding<I>
+where
+    u32: ConvertFrom<I>,
+{
+    type Source=scalar::Plaintext<I, u32>;
+    fn decode(&self, x: &scalar::Plaintext<I, u32>) -> u32 {
+        u32::_from(&x.data.0)
+    }
+}
+
 impl<I> Decoder<u64> for Coding<I>
 where
     u64: ConvertFrom<I>,

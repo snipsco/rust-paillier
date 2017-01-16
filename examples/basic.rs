@@ -16,17 +16,10 @@ fn main() {
 
     let eek = ek.with_encoder(&code);
 
-    let m1 = 10;
-    let c1 = Paillier::encrypt(&eek, &m1);
-
-    let m2 = 20;
-    let c2 = Paillier::encrypt(&eek, &m2);
-
-    let m3 = 30;
-    let c3 = Paillier::encrypt(&eek, &m3);
-
-    let m4 = 40;
-    let c4 = Paillier::encrypt(&eek, &m4);
+    let c1 = Paillier::encrypt(&eek, &10_u32);
+    let c2 = Paillier::encrypt(&eek, &20_u32);
+    let c3 = Paillier::encrypt(&eek, &30_u32);
+    let c4 = Paillier::encrypt(&eek, &40_u32);
 
     // add up all four encryptions
     let c = Paillier::add(&ek,
@@ -36,6 +29,6 @@ fn main() {
 
     let ddk = dk.with_decoder(&code);
 
-    let m: u64 = Paillier::decrypt(&ddk, &c);
+    let m: u32 = Paillier::decrypt(&ddk, &c);
     println!("decrypted total sum is {}", m);
 }

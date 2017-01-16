@@ -65,19 +65,11 @@ pub trait EncodableType {}
 // Heuristics for what constitutes an encodable type:
 // impl<T: Into<u64>> EncodableType for T {}
 impl<T: Into<u64>> EncodableType for Vec<T> {}
+impl EncodableType for usize {}
+impl EncodableType for u8 {}
+impl EncodableType for u16 {}
+impl EncodableType for u32 {}
 impl EncodableType for u64 {}
-
-/// Encoding of e.g. primitive values as plaintexts.
-pub trait Encoding<T, P>
-{
-    fn encode(x: &T) -> P;
-}
-
-/// Decoding of e.g. primitive values as plaintexts.
-pub trait Decoding<P, T>
-{
-    fn decode(y: &P) -> T;
-}
 
 pub trait Encoder<T>
 {
