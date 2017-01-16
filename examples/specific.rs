@@ -23,19 +23,13 @@ fn main() {
     let c2 = MyScheme::encrypt(&eek, &20);
     let c3 = MyScheme::encrypt(&eek, &30);
     let c4 = MyScheme::encrypt(&eek, &40);
-
     // add up all four encryptions
     let c = MyScheme::add(&ek,
         &MyScheme::add(&ek, &c1, &c2),
         &MyScheme::add(&ek, &c3, &c4)
     );
 
-    // divide by 4 (only correct when result is integer)
-    //  - note that this could just as well be done after decrypting!
-    // let d = plain::div(&ek, &c, &BigUint::from(4u32));
-
     let m: u64 = code.decode(&MyScheme::decrypt(&dk, &c));
-    // let n = plain::decrypt(&dk, &d);
     println!("decrypted total sum is {}", m);
-    // println!("... and after dividing {}", n);
+
 }

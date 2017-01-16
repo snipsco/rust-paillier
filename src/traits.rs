@@ -65,10 +65,10 @@ pub trait EncodableType {}
 // Heuristics for what constitutes an encodable type:
 // impl<T: Into<u64>> EncodableType for T {}
 impl<T: Into<u64>> EncodableType for Vec<T> {}
-impl EncodableType for usize {}
-impl EncodableType for u8 {}
-impl EncodableType for u16 {}
-impl EncodableType for u32 {}
+// impl EncodableType for usize {}
+// impl EncodableType for u8 {}
+// impl EncodableType for u16 {}
+// impl EncodableType for u32 {}
 impl EncodableType for u64 {}
 
 pub trait Encoder<T>
