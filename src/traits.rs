@@ -79,31 +79,14 @@ pub trait Decoding<P, T>
     fn decode(y: &P) -> T;
 }
 
-pub trait Encoder<T, P>
+pub trait Encoder<T>
 {
-    fn encode(&self, x: &T) -> P;
+    type Target;
+    fn encode(&self, x: &T) -> Self::Target;
 }
 
-pub trait Decoder<P, T>
+pub trait Decoder<T>
 {
-    fn decode(&self, y: &P) -> T;
+    type Source;
+    fn decode(&self, y: &Self::Source) -> T;
 }
-
-pub trait Foo<P>
-{
-    fn bar<T>(&self, x: &T) -> P;
-}
-
-// impl<O, T, P> Encoder<T, P> for O
-// where
-//     O: Encoding<T, P>
-// {
-//     fn encode(&self, x: &T) -> P { O::encode(x) }
-// }
-//
-// impl<O, P, T> Decoder<P, T> for O
-// where
-//     O: Decoding<P, T>
-// {
-//     fn decode(&self, y: &P) -> T { O::decode(y) }
-// }

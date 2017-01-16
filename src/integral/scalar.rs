@@ -6,27 +6,27 @@ use std::marker::PhantomData;
 
 /// Representation of unencrypted message.
 #[derive(Debug,Clone,PartialEq)]
-pub struct ScalarPlaintext<I, T> {
+pub struct Plaintext<I, T> {
     pub data: basic::Plaintext<I>,
-    _phantom: PhantomData<T>
+    pub _phantom: PhantomData<T>
 }
 
 
 /// Representation of encrypted message.
 #[derive(Debug,Clone)]
-pub struct ScalarCiphertext<I, T> {
+pub struct Ciphertext<I, T> {
     pub data: basic::Ciphertext<I>,
-    _phantom: PhantomData<T>
+    pub _phantom: PhantomData<T>
 }
 
 
-impl<I, T, S, EK> Encryption<EK, ScalarPlaintext<I, T>, ScalarCiphertext<I, T>> for S
+impl<I, T, S, EK> Encryption<EK, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn encrypt(ek: &EK, m: &ScalarPlaintext<I, T>) -> ScalarCiphertext<I, T> {
-        ScalarCiphertext {
+    fn encrypt(ek: &EK, m: &Plaintext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::encrypt(&ek, &m.data),
             _phantom: PhantomData
         }
@@ -34,13 +34,13 @@ where
 }
 
 
-impl<I, T, S, DK> Decryption<DK, ScalarCiphertext<I, T>, ScalarPlaintext<I, T>> for S
+impl<I, T, S, DK> Decryption<DK, Ciphertext<I, T>, Plaintext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Decryption<DK, basic::Ciphertext<I>, basic::Plaintext<I>>,
 {
-    fn decrypt(dk: &DK, c: &ScalarCiphertext<I, T>) -> ScalarPlaintext<I, T> {
-        ScalarPlaintext {
+    fn decrypt(dk: &DK, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
+        Plaintext {
             data: S::decrypt(dk, &c.data),
             _phantom: PhantomData
         }
@@ -48,13 +48,13 @@ where
 }
 
 
-impl<I, T, S, EK> Rerandomisation<EK, ScalarCiphertext<I, T>> for S
+impl<I, T, S, EK> Rerandomisation<EK, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Rerandomisation<EK, basic::Ciphertext<I>>,
 {
-    fn rerandomise(ek: &EK, c: &ScalarCiphertext<I, T>) -> ScalarCiphertext<I, T> {
-        ScalarCiphertext {
+    fn rerandomise(ek: &EK, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::rerandomise(&ek, &c.data),
             _phantom: PhantomData
         }
@@ -62,13 +62,13 @@ where
 }
 
 
-impl<I, T, S, EK> Addition<EK, ScalarCiphertext<I, T>, ScalarCiphertext<I, T>, ScalarCiphertext<I, T>> for S
+impl<I, T, S, EK> Addition<EK, Ciphertext<I, T>, Ciphertext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Addition<EK, basic::Ciphertext<I>, basic::Ciphertext<I>, basic::Ciphertext<I>>,
 {
-    fn add(ek: &EK, c1: &ScalarCiphertext<I, T>, c2: &ScalarCiphertext<I, T>) -> ScalarCiphertext<I, T> {
-        ScalarCiphertext {
+    fn add(ek: &EK, c1: &Ciphertext<I, T>, c2: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::add(&ek, &c1.data, &c2.data),
             _phantom: PhantomData
         }
@@ -76,13 +76,13 @@ where
 }
 
 
-impl<I, T, S, EK> Multiplication<EK, ScalarCiphertext<I, T>, ScalarPlaintext<I, T>, ScalarCiphertext<I, T>> for S
+impl<I, T, S, EK> Multiplication<EK, Ciphertext<I, T>, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn mul(ek: &EK, c1: &ScalarCiphertext<I, T>, m2: &ScalarPlaintext<I, T>) -> ScalarCiphertext<I, T> {
-        ScalarCiphertext {
+    fn mul(ek: &EK, c1: &Ciphertext<I, T>, m2: &Plaintext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::mul(&ek, &c1.data, &m2.data),
             _phantom: PhantomData
         }
@@ -90,61 +90,16 @@ where
 }
 
 
-impl<I, T> From<T> for ScalarPlaintext<I, T>
+impl<I, T> From<T> for Plaintext<I, T>
 where
     T: Copy,  // marker to avoid infinite loop by excluding Plaintext
     I: From<T>,
 {
-    fn from(x: T) -> ScalarPlaintext<I, T> {
-        ScalarPlaintext{
+    fn from(x: T) -> Plaintext<I, T> {
+        Plaintext{
             data: basic::Plaintext(I::from(x)),
             _phantom: PhantomData
         }
-    }
-}
-
-
-pub struct Coding<I, T>(PhantomData<(I, T)>);
-
-impl<I, T> Coding<I, T> {
-    pub fn new() -> Coding<I, T> {
-        Coding(PhantomData)
-    }
-}
-
-impl<I, T> Encoder<T, ScalarPlaintext<I, T>> for Coding<I, T>
-where
-    T: Clone,
-    I: From<T>,
-{
-    fn encode(&self, x: &T) -> ScalarPlaintext<I, T> {
-        ScalarPlaintext {
-            data: basic::Plaintext(I::from(x.clone())),
-            _phantom: PhantomData
-        }
-    }
-}
-
-impl<I, T> Encoding<T, ScalarPlaintext<I, T>> for Coding<I, T>
-where
-    I: From<T>,
-    T: Copy,
-{
-    fn encode(x: &T) -> ScalarPlaintext<I, T> {
-        ScalarPlaintext {
-            data: basic::Plaintext(I::from(*x)),
-            _phantom: PhantomData
-        }
-    }
-}
-
-use arithimpl::traits::ConvertFrom;
-impl<I, T> Decoding<ScalarPlaintext<I, T>, T> for Coding<I, T>
-where
-    T: ConvertFrom<I>,
-{
-    fn decode(x: &ScalarPlaintext<I, T>) -> T {
-        T::_from(&x.data.0)
     }
 }
 
@@ -169,9 +124,9 @@ mod tests {
     #[test]
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
-        let code = Coding::new();
+        let code = Coding::default();
 
-        let m = code.encode(&10);
+        let m = code.encode(&10_u64);
         let c = Scheme::encrypt(&ek, &m);
 
         let recovered_m = Scheme::decrypt(&dk, &c);
@@ -181,30 +136,30 @@ mod tests {
     #[test]
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
-        let code = Coding::new();
+        let code = Coding::default();
 
-        let m1 = code.encode(&10);
+        let m1 = code.encode(&10_u64);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = code.encode(&20);
+        let m2 = code.encode(&20_u64);
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(code.decode(&m), 30);
+        assert_eq!(m, code.encode(&30_u64));
     }
 
     #[test]
     fn correct_multiplication() {
         let (ek, dk) = test_keypair();
-        let code = Coding::new();
+        let code = Coding::default();
 
-        let m1 = code.encode(&10);
+        let m1 = code.encode(&10_u64);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = code.encode(&20);
+        let m2 = code.encode(&20_u64);
 
         let c = Scheme::mul(&ek, &c1, &m2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(code.decode(&m), 200);
+        assert_eq!(m, code.encode(&200_u64));
     }
 
 });

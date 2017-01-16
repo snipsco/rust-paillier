@@ -11,20 +11,22 @@ fn main() {
 
     use paillier::*;
 
-    let (ek, dk): (paillier::basic::standard::EncryptionKey<paillier::BigInteger>, _) = Paillier::keypair();
-    // let sek = ek.with_encoder()
+    let (ek, dk) = Paillier::keypair();
+    let code = integral::Coding::default();
 
-    let m1 = 10_u64;
-    let c1 = Paillier::encrypt(&ek, &m1);
+    let eek = ek.with_encoder(&code);
 
-    let m2 = Paillier::encode(20);;
-    let c2 = Paillier::encrypt(&ek, &m2);
+    let m1 = 10;
+    let c1 = Paillier::encrypt(&eek, &m1);
 
-    let m3 = Paillier::encode(30);
-    let c3 = Paillier::encrypt(&ek, &m3);
+    let m2 = 20;
+    let c2 = Paillier::encrypt(&eek, &m2);
 
-    let m4 = Paillier::encode(40);
-    let c4 = Paillier::encrypt(&ek, &m4);
+    let m3 = 30;
+    let c3 = Paillier::encrypt(&eek, &m3);
+
+    let m4 = 40;
+    let c4 = Paillier::encrypt(&eek, &m4);
 
     // add up all four encryptions
     let c = Paillier::add(&ek,
@@ -32,12 +34,8 @@ fn main() {
         &Paillier::add(&ek, &c3, &c4)
     );
 
-    // divide by 4 (only correct when result is integer)
-    //  - note that this could just as well be done after decrypting!
-    // let d = plain::div(&ek, &c, &BigUint::from(4u32));
+    let ddk = dk.with_decoder(&code);
 
-    let m = Paillier::decrypt(&dk, &c).0;
-    // let n = plain::decrypt(&dk, &d);
+    let m: u64 = Paillier::decrypt(&ddk, &c);
     println!("decrypted total sum is {}", m);
-    // println!("... and after dividing {}", n);
 }

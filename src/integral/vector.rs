@@ -3,41 +3,38 @@
 //! Homomorphic properties are preserved, as long as the absolute values stay within specified bounds.
 
 use super::*;
-use super::scalar::*;
+use super::scalar;
 
 use std::marker::PhantomData;
-use std::ops::{Add, Shl, Shr, Rem};
-use num_traits::One;
-use arithimpl::traits::ConvertFrom;
 
 
 /// Representation of unencrypted message (vector).
 #[derive(Debug,Clone,PartialEq)]
-pub struct VectorPlaintext<I, T> {
+pub struct Plaintext<I, T> {
     pub data: basic::Plaintext<I>,
-    component_count: usize,
-    component_size: usize,  // in bits
-    _phantom: PhantomData<T>
+    pub component_count: usize,
+    pub component_size: usize,  // in bits
+    pub _phantom: PhantomData<T>
 }
 
 
 /// Representation of encrypted message (vector).
 #[derive(Debug,Clone)]
-pub struct VectorCiphertext<I, T> {
+pub struct Ciphertext<I, T> {
     pub data: basic::Ciphertext<I>,
-    component_count: usize,
-    component_size: usize,  // in bits
-    _phantom: PhantomData<T>
+    pub component_count: usize,
+    pub component_size: usize,  // in bits
+    pub _phantom: PhantomData<T>
 }
 
 
-impl<I, T, S, EK> Encryption<EK, VectorPlaintext<I, T>, VectorCiphertext<I, T>> for S
+impl<I, T, S, EK> Encryption<EK, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn encrypt(ek: &EK, m: &VectorPlaintext<I, T>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
+    fn encrypt(ek: &EK, m: &Plaintext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::encrypt(&ek, &m.data),
             component_count: m.component_count,
             component_size: m.component_size,
@@ -47,13 +44,13 @@ where
 }
 
 
-impl<I, T, S, DK> Decryption<DK, VectorCiphertext<I, T>, VectorPlaintext<I, T>> for S
+impl<I, T, S, DK> Decryption<DK, Ciphertext<I, T>, Plaintext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Decryption<DK, basic::Ciphertext<I>, basic::Plaintext<I>>,
 {
-    fn decrypt(dk: &DK, c: &VectorCiphertext<I, T>) -> VectorPlaintext<I, T> {
-        VectorPlaintext {
+    fn decrypt(dk: &DK, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
+        Plaintext {
             data: S::decrypt(dk, &c.data),
             component_count: c.component_count,
             component_size: c.component_size,
@@ -63,13 +60,13 @@ where
 }
 
 
-impl<I, T, S, EK> Rerandomisation<EK, VectorCiphertext<I, T>> for S
+impl<I, T, S, EK> Rerandomisation<EK, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Rerandomisation<EK, basic::Ciphertext<I>>,
 {
-    fn rerandomise(ek: &EK, c: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
+    fn rerandomise(ek: &EK, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::rerandomise(&ek, &c.data),
             component_count: c.component_count,
             component_size: c.component_size,
@@ -79,14 +76,14 @@ where
 }
 
 
-impl<I, T, S, EK> Addition<EK, VectorCiphertext<I, T>, VectorCiphertext<I, T>, VectorCiphertext<I, T>> for S
+impl<I, T, S, EK> Addition<EK, Ciphertext<I, T>, Ciphertext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Addition<EK, basic::Ciphertext<I>, basic::Ciphertext<I>, basic::Ciphertext<I>>,
 {
-    fn add(ek: &EK, c1: &VectorCiphertext<I, T>, c2: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
+    fn add(ek: &EK, c1: &Ciphertext<I, T>, c2: &Ciphertext<I, T>) -> Ciphertext<I, T> {
         let c = S::add(&ek, &c1.data, &c2.data);
-        VectorCiphertext {
+        Ciphertext {
             data: c,
             component_count: c1.component_count,
             component_size: c1.component_size, // TODO equality
@@ -96,104 +93,18 @@ where
 }
 
 
-impl<I, T, S, EK> Multiplication<EK, VectorCiphertext<I, T>, ScalarPlaintext<I, T>, VectorCiphertext<I, T>> for S
+impl<I, T, S, EK> Multiplication<EK, Ciphertext<I, T>, scalar::Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
 {
-    fn mul(ek: &EK, c1: &VectorCiphertext<I, T>, m2: &ScalarPlaintext<I, T>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
+    fn mul(ek: &EK, c1: &Ciphertext<I, T>, m2: &scalar::Plaintext<I, T>) -> Ciphertext<I, T> {
+        Ciphertext {
             data: S::mul(&ek, &c1.data, &m2.data),
             component_count: c1.component_count, // TODO equality
             component_size: c1.component_size,
             _phantom: PhantomData
         }
-    }
-}
-
-
-pub struct Coding<I, T> {
-    component_count: usize,
-    component_size: usize,  // in bits
-    _phantom: PhantomData<(I, T)>
-}
-
-impl<I, T> Coding<I, T> {
-    pub fn default() -> Coding<I, T> {
-        Self::new(10, 64)
-    }
-
-    pub fn new(component_count: usize, component_size: usize) -> Coding<I, T> {
-        use std::mem::size_of;
-        assert!(size_of::<T>() <= component_size);
-        Coding {
-            component_count: component_count,
-            component_size: component_size,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-
-// TODO: not correct
-impl<I, T> Encoder<T, VectorPlaintext<I, T>> for Coding<I, T>
-where
-    T: Clone,
-    I: From<T>,
-{
-    fn encode(&self, x: &T) -> VectorPlaintext<I, T> {
-        VectorPlaintext {
-            data: basic::Plaintext(I::from(x.clone())),
-            component_count: self.component_count,
-            component_size: self.component_size,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-
-impl<I, T> Encoder<Vec<T>, VectorPlaintext<I, T>> for Coding<I, T>
-where
-    T: One,
-    T: Clone,
-    I: From<T>,
-    T: Shl<usize, Output=T>,
-    T: ConvertFrom<I>,
-    I: One,
-    I: Clone,
-    I: From<T>,
-    I: Shl<usize, Output=I>,
-    I: Add<I, Output=I>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
-    for<'a> &'a    I: Shr<usize, Output=I>,
-{
-    fn encode(&self, x: &Vec<T>) -> VectorPlaintext<I, T> {
-        VectorPlaintext {
-            data: basic::Plaintext(pack(x, self.component_count, self.component_size)),
-            component_count: self.component_count,
-            component_size: self.component_size,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-impl<I, T> Decoder<VectorPlaintext<I, T>, Vec<T>> for Coding<I, T>
-where
-    T: One,
-    T: Clone,
-    I: From<T>,
-    T: Shl<usize, Output=T>,
-    T: ConvertFrom<I>,
-    I: One,
-    I: Clone,
-    I: From<T>,
-    I: Shl<usize, Output=I>,
-    I: Add<I, Output=I>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
-    for<'a> &'a    I: Shr<usize, Output=I>,
-{
-    fn decode(&self, x: &VectorPlaintext<I, T>) -> Vec<T> {
-        unpack(x.data.0.clone(), self.component_count, self.component_size)
     }
 }
 
@@ -227,7 +138,7 @@ mod tests {
         let p = code.encode(&m);
         let c = Scheme::encrypt(&ek, &p);
         let recovered_p = Scheme::decrypt(&dk, &c);
-        let recovered_m = code.decode(&recovered_p);
+        let recovered_m: Vec<u64> = code.decode(&recovered_p);
 
         assert_eq!(recovered_p, p);
         assert_eq!(recovered_m, m);
@@ -245,8 +156,8 @@ mod tests {
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
-        let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(code.decode(&m), vec![2, 4, 6]);
+        let m: Vec<_> = code.decode(&Scheme::decrypt(&dk, &c));
+        assert_eq!(m, vec![2, 4, 6]);
     }
 
     #[test]
@@ -257,11 +168,11 @@ mod tests {
 
         let m1 = code.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = ScalarPlaintext::from(4);
+        let m2 = scalar::Plaintext::from(4);
 
         let c = Scheme::mul(&ek, &c1, &m2);
-        let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(code.decode(&m), vec![4, 8, 12]);
+        let m: Vec<_> = code.decode(&Scheme::decrypt(&dk, &c));
+        assert_eq!(m, vec![4, 8, 12]);
     }
 
 });

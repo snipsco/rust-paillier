@@ -6,6 +6,7 @@ extern crate num_traits;
 use bencher::Bencher;
 use paillier::*;
 use paillier::basic::*;
+use paillier::basic::standard::*;
 
 pub fn bench_encryption<S>(b: &mut Bencher)
 where
@@ -18,7 +19,7 @@ where
     S : TestKeyGeneration<<S as AbstractScheme>::BigInteger>
 {
     let (ek, _) = S::test_keypair();
-    let m = S::encode(10);
+    let m = S::encode(&10_u32);
     b.iter(|| {
         let _ = S::encrypt(&ek, &m);
     });
