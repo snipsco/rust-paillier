@@ -8,6 +8,7 @@ use super::scalar::*;
 use std::marker::PhantomData;
 use std::ops::{Add, Shl, Shr, Rem};
 use num_traits::One;
+use arithimpl::traits::ConvertFrom;
 
 
 /// Representation of unencrypted message (vector).
@@ -133,8 +134,25 @@ impl<I, T> Coding<I, T> {
     }
 }
 
-use arithimpl::traits::ConvertFrom;
-impl<I, T> ::traits::Encoder<Vec<T>, VectorPlaintext<I, T>> for Coding<I, T>
+
+// TODO: not correct
+impl<I, T> Encoder<T, VectorPlaintext<I, T>> for Coding<I, T>
+where
+    T: Clone,
+    I: From<T>,
+{
+    fn encode(&self, x: &T) -> VectorPlaintext<I, T> {
+        VectorPlaintext {
+            data: basic::Plaintext(I::from(x.clone())),
+            component_count: self.component_count,
+            component_size: self.component_size,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+
+impl<I, T> Encoder<Vec<T>, VectorPlaintext<I, T>> for Coding<I, T>
 where
     T: One,
     T: Clone,
@@ -159,7 +177,7 @@ where
     }
 }
 
-impl<I, T> ::traits::Decoder<VectorPlaintext<I, T>, Vec<T>> for Coding<I, T>
+impl<I, T> Decoder<VectorPlaintext<I, T>, Vec<T>> for Coding<I, T>
 where
     T: One,
     T: Clone,

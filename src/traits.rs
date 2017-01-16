@@ -89,16 +89,21 @@ pub trait Decoder<P, T>
     fn decode(&self, y: &P) -> T;
 }
 
-impl<O, T, P> Encoder<T, P> for O
-where
-    O: Encoding<T, P>
+pub trait Foo<P>
 {
-    fn encode(&self, x: &T) -> P { O::encode(x) }
+    fn bar<T>(&self, x: &T) -> P;
 }
 
-impl<O, P, T> Decoder<P, T> for O
-where
-    O: Decoding<P, T>
-{
-    fn decode(&self, y: &P) -> T { O::decode(y) }
-}
+// impl<O, T, P> Encoder<T, P> for O
+// where
+//     O: Encoding<T, P>
+// {
+//     fn encode(&self, x: &T) -> P { O::encode(x) }
+// }
+//
+// impl<O, P, T> Decoder<P, T> for O
+// where
+//     O: Decoding<P, T>
+// {
+//     fn decode(&self, y: &P) -> T { O::decode(y) }
+// }

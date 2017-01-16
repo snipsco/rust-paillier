@@ -112,7 +112,20 @@ impl<I, T> Coding<I, T> {
     }
 }
 
-impl<I, T> ::traits::Encoding<T, ScalarPlaintext<I, T>> for Coding<I, T>
+impl<I, T> Encoder<T, ScalarPlaintext<I, T>> for Coding<I, T>
+where
+    T: Clone,
+    I: From<T>,
+{
+    fn encode(&self, x: &T) -> ScalarPlaintext<I, T> {
+        ScalarPlaintext {
+            data: basic::Plaintext(I::from(x.clone())),
+            _phantom: PhantomData
+        }
+    }
+}
+
+impl<I, T> Encoding<T, ScalarPlaintext<I, T>> for Coding<I, T>
 where
     I: From<T>,
     T: Copy,
@@ -126,7 +139,7 @@ where
 }
 
 use arithimpl::traits::ConvertFrom;
-impl<I, T> ::traits::Decoding<ScalarPlaintext<I, T>, T> for Coding<I, T>
+impl<I, T> Decoding<ScalarPlaintext<I, T>, T> for Coding<I, T>
 where
     T: ConvertFrom<I>,
 {
