@@ -11,9 +11,10 @@ fn main() {
 
     use paillier::*;
 
-    let (ek, dk) = Paillier::keypair();
+    let (ek, dk): (paillier::basic::standard::EncryptionKey<paillier::BigInteger>, _) = Paillier::keypair();
+    // let sek = ek.with_encoder()
 
-    let m1 = 10;
+    let m1 = 10_u64;
     let c1 = Paillier::encrypt(&ek, &m1);
 
     let m2 = Paillier::encode(20);;

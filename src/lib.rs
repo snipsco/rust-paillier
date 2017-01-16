@@ -33,15 +33,19 @@ macro_rules! bigint {
     };
 }
 
+mod packing;
+
+pub mod coding;
 pub mod arithimpl;
 pub mod traits;
 pub mod basic;
 pub mod integral;
 
-pub use basic::EncryptionKey;
-pub use basic::crt::DecryptionKey as DecryptionKey;  // default decryption key
-
+use packing::*;
 pub use traits::*;
+pub use coding::*;
+pub use basic::standard::EncryptionKey;
+pub use basic::crt::DecryptionKey;
 
 
 /// Implementation of the Paillier operations, such as encryption, decryption, and addition.

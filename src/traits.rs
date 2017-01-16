@@ -20,7 +20,13 @@ pub trait KeyGeneration<EK, DK>
     fn keypair_of_size(big_length: usize) -> (EK, DK);
 }
 
-/// Encryption of plaintext
+/// Marker trait for encryption keys.
+pub trait EncryptionKey {}
+
+/// Marker trait for decryption keys.
+pub trait DecryptionKey {}
+
+// /// Encryption of plaintext
 pub trait Encryption<EK, PT, CT> {
     /// Encrypt plaintext `m` under key `ek` into a ciphertext.
     fn encrypt(ek: &EK, m: &PT) -> CT;
@@ -52,6 +58,14 @@ pub trait Rerandomisation<EK, CT> {
     /// used to compute it, making it look exactly like a fresh encryption of the same plaintext.
     fn rerandomise(ek: &EK, c: &CT) -> CT;
 }
+
+/// Marker trait to avoid conflicting implementations.
+/// Future support for negative traits could void this.
+pub trait EncodableType {}
+// Heuristics for what constitutes an encodable type:
+// impl<T: Into<u64>> EncodableType for T {}
+impl<T: Into<u64>> EncodableType for Vec<T> {}
+impl EncodableType for u64 {}
 
 /// Encoding of e.g. primitive values as plaintexts.
 pub trait Encoding<T, P>

@@ -9,6 +9,7 @@ use std::marker::PhantomData;
 use std::ops::{Add, Shl, Shr, Rem};
 use num_traits::One;
 
+
 /// Representation of unencrypted message (vector).
 #[derive(Debug,Clone,PartialEq)]
 pub struct VectorPlaintext<I, T> {
@@ -19,21 +20,112 @@ pub struct VectorPlaintext<I, T> {
 }
 
 
-pub struct Encoding<I, T> {
+/// Representation of encrypted message (vector).
+#[derive(Debug,Clone)]
+pub struct VectorCiphertext<I, T> {
+    pub data: basic::Ciphertext<I>,
+    component_count: usize,
+    component_size: usize,  // in bits
+    _phantom: PhantomData<T>
+}
+
+
+impl<I, T, S, EK> Encryption<EK, VectorPlaintext<I, T>, VectorCiphertext<I, T>> for S
+where
+    S: AbstractScheme<BigInteger=I>,
+    S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
+{
+    fn encrypt(ek: &EK, m: &VectorPlaintext<I, T>) -> VectorCiphertext<I, T> {
+        VectorCiphertext {
+            data: S::encrypt(&ek, &m.data),
+            component_count: m.component_count,
+            component_size: m.component_size,
+            _phantom: PhantomData
+        }
+    }
+}
+
+
+impl<I, T, S, DK> Decryption<DK, VectorCiphertext<I, T>, VectorPlaintext<I, T>> for S
+where
+    S: AbstractScheme<BigInteger=I>,
+    S: Decryption<DK, basic::Ciphertext<I>, basic::Plaintext<I>>,
+{
+    fn decrypt(dk: &DK, c: &VectorCiphertext<I, T>) -> VectorPlaintext<I, T> {
+        VectorPlaintext {
+            data: S::decrypt(dk, &c.data),
+            component_count: c.component_count,
+            component_size: c.component_size,
+            _phantom: PhantomData
+        }
+    }
+}
+
+
+impl<I, T, S, EK> Rerandomisation<EK, VectorCiphertext<I, T>> for S
+where
+    S: AbstractScheme<BigInteger=I>,
+    S: Rerandomisation<EK, basic::Ciphertext<I>>,
+{
+    fn rerandomise(ek: &EK, c: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
+        VectorCiphertext {
+            data: S::rerandomise(&ek, &c.data),
+            component_count: c.component_count,
+            component_size: c.component_size,
+            _phantom: PhantomData
+        }
+    }
+}
+
+
+impl<I, T, S, EK> Addition<EK, VectorCiphertext<I, T>, VectorCiphertext<I, T>, VectorCiphertext<I, T>> for S
+where
+    S: AbstractScheme<BigInteger=I>,
+    S: Addition<EK, basic::Ciphertext<I>, basic::Ciphertext<I>, basic::Ciphertext<I>>,
+{
+    fn add(ek: &EK, c1: &VectorCiphertext<I, T>, c2: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
+        let c = S::add(&ek, &c1.data, &c2.data);
+        VectorCiphertext {
+            data: c,
+            component_count: c1.component_count,
+            component_size: c1.component_size, // TODO equality
+            _phantom: PhantomData
+        }
+    }
+}
+
+
+impl<I, T, S, EK> Multiplication<EK, VectorCiphertext<I, T>, ScalarPlaintext<I, T>, VectorCiphertext<I, T>> for S
+where
+    S: AbstractScheme<BigInteger=I>,
+    S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
+{
+    fn mul(ek: &EK, c1: &VectorCiphertext<I, T>, m2: &ScalarPlaintext<I, T>) -> VectorCiphertext<I, T> {
+        VectorCiphertext {
+            data: S::mul(&ek, &c1.data, &m2.data),
+            component_count: c1.component_count, // TODO equality
+            component_size: c1.component_size,
+            _phantom: PhantomData
+        }
+    }
+}
+
+
+pub struct Coding<I, T> {
     component_count: usize,
     component_size: usize,  // in bits
     _phantom: PhantomData<(I, T)>
 }
 
-impl<I, T> Encoding<I, T> {
-    pub fn default() -> Encoding<I, T> {
+impl<I, T> Coding<I, T> {
+    pub fn default() -> Coding<I, T> {
         Self::new(10, 64)
     }
 
-    pub fn new(component_count: usize, component_size: usize) -> Encoding<I, T> {
+    pub fn new(component_count: usize, component_size: usize) -> Coding<I, T> {
         use std::mem::size_of;
         assert!(size_of::<T>() <= component_size);
-        Encoding {
+        Coding {
             component_count: component_count,
             component_size: component_size,
             _phantom: PhantomData,
@@ -41,14 +133,14 @@ impl<I, T> Encoding<I, T> {
     }
 }
 
-impl<I, T> ::traits::Encoder<Vec<T>, VectorPlaintext<I, T>> for Encoding<I, T>
+use arithimpl::traits::ConvertFrom;
+impl<I, T> ::traits::Encoder<Vec<T>, VectorPlaintext<I, T>> for Coding<I, T>
 where
     T: One,
     T: Clone,
     I: From<T>,
     T: Shl<usize, Output=T>,
     T: ConvertFrom<I>,
-    T: Debug,
     I: One,
     I: Clone,
     I: From<T>,
@@ -67,14 +159,13 @@ where
     }
 }
 
-impl<I, T> ::traits::Decoder<VectorPlaintext<I, T>, Vec<T>> for Encoding<I, T>
+impl<I, T> ::traits::Decoder<VectorPlaintext<I, T>, Vec<T>> for Coding<I, T>
 where
     T: One,
     T: Clone,
     I: From<T>,
     T: Shl<usize, Output=T>,
     T: ConvertFrom<I>,
-    T: Debug,
     I: One,
     I: Clone,
     I: From<T>,
@@ -87,119 +178,6 @@ where
         unpack(x.data.0.clone(), self.component_count, self.component_size)
     }
 }
-
-
-/// Representation of encrypted message (vector).
-#[derive(Debug,Clone)]
-pub struct VectorCiphertext<I, T> {
-    pub data: basic::Ciphertext<I>,
-    component_count: usize,
-    component_size: usize,  // in bits
-    _phantom: PhantomData<T>
-}
-
-
-impl <I, T, S> Encryption<basic::EncryptionKey<I>, VectorPlaintext<I, T>, VectorCiphertext<I, T>> for S
-where
-    S: AbstractScheme<BigInteger=I>,
-    S: Encryption<basic::EncryptionKey<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
-{
-    fn encrypt(ek: &basic::EncryptionKey<I>, m: &VectorPlaintext<I, T>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
-            data: S::encrypt(&ek, &m.data),
-            component_count: m.component_count,
-            component_size: m.component_size,
-            _phantom: PhantomData
-        }
-    }
-}
-
-
-impl <I, T, S, DK> Decryption<DK, VectorCiphertext<I, T>, VectorPlaintext<I, T>> for S
-where
-    S: AbstractScheme<BigInteger=I>,
-    S: Decryption<DK, basic::Ciphertext<I>, basic::Plaintext<I>>,
-{
-    fn decrypt(dk: &DK, c: &VectorCiphertext<I, T>) -> VectorPlaintext<I, T> {
-        VectorPlaintext {
-            data: S::decrypt(dk, &c.data),
-            component_count: c.component_count,
-            component_size: c.component_size,
-            _phantom: PhantomData
-        }
-    }
-}
-
-
-impl <I, T, S, EK> Rerandomisation<EK, VectorCiphertext<I, T>> for S
-where
-    S: AbstractScheme<BigInteger=I>,
-    S: Rerandomisation<EK, basic::Ciphertext<I>>,
-{
-    fn rerandomise(ek: &EK, c: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
-            data: S::rerandomise(&ek, &c.data),
-            component_count: c.component_count,
-            component_size: c.component_size,
-            _phantom: PhantomData
-        }
-    }
-}
-
-
-impl <I, T, S, EK> Addition<EK, VectorCiphertext<I, T>, VectorCiphertext<I, T>, VectorCiphertext<I, T>> for S
-where
-    S: AbstractScheme<BigInteger=I>,
-    S: Addition<EK, basic::Ciphertext<I>, basic::Ciphertext<I>, basic::Ciphertext<I>>,
-{
-    fn add(ek: &EK, c1: &VectorCiphertext<I, T>, c2: &VectorCiphertext<I, T>) -> VectorCiphertext<I, T> {
-        let c = S::add(&ek, &c1.data, &c2.data);
-        VectorCiphertext {
-            data: c,
-            component_count: c1.component_count,
-            component_size: c1.component_size, // TODO equality
-            _phantom: PhantomData
-        }
-    }
-}
-
-
-// impl <I, T, S, EK> Multiplication<EK, VectorCiphertext<I, T>, T, VectorCiphertext<I, T>> for S
-// where
-//     S: AbstractScheme<BigInteger=I>,
-//     S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
-//     T: Clone,
-//     I: From<T>,
-// {
-//     fn mul(ek: &EK, c1: &VectorCiphertext<I, T>, m2: &T) -> VectorCiphertext<I, T> {
-//         let scalar = basic::Plaintext(I::from(m2.clone()));
-//         let c = S::mul(&ek, &c1.data, &scalar);
-//         VectorCiphertext {
-//             data: c,
-//             component_count: c1.component_count, // TODO equality
-//             component_size: c1.component_size,
-//             _phantom: PhantomData
-//         }
-//     }
-// }
-
-
-impl <I, T, S, EK> Multiplication<EK, VectorCiphertext<I, T>, ScalarPlaintext<I>, VectorCiphertext<I, T>> for S
-where
-    S: AbstractScheme<BigInteger=I>,
-    S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
-{
-    fn mul(ek: &EK, c1: &VectorCiphertext<I, T>, m2: &ScalarPlaintext<I>) -> VectorCiphertext<I, T> {
-        VectorCiphertext {
-            data: S::mul(&ek, &c1.data, &m2.0),
-            component_count: c1.component_count, // TODO equality
-            component_size: c1.component_size,
-            _phantom: PhantomData
-        }
-    }
-}
-
-
 
 
 bigint!(I,
@@ -225,13 +203,13 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoding::new(3, 64);
+        let code = Coding::new(3, 64);
         let m = vec![1, 2, 3];
 
-        let p = encoder.encode(&m);
+        let p = code.encode(&m);
         let c = Scheme::encrypt(&ek, &p);
         let recovered_p = Scheme::decrypt(&dk, &c);
-        let recovered_m = encoder.decode(&recovered_p);
+        let recovered_m = code.decode(&recovered_p);
 
         assert_eq!(recovered_p, p);
         assert_eq!(recovered_m, m);
@@ -241,31 +219,31 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoding::new(3, 16);
+        let code = Coding::new(3, 16);
 
-        let m1 = encoder.encode(&vec![1, 2, 3]);
+        let m1 = code.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
-        let m2 = encoder.encode(&vec![1, 2, 3]);
+        let m2 = code.encode(&vec![1, 2, 3]);
         let c2 = Scheme::encrypt(&ek, &m2);
 
         let c = Scheme::add(&ek, &c1, &c2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(m, encoder.encode(&vec![2, 4, 6]));
+        assert_eq!(code.decode(&m), vec![2, 4, 6]);
     }
 
     #[test]
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let encoder = Encoding::new(3, 16);
+        let code = Coding::new(3, 16);
 
-        let m1 = encoder.encode(&vec![1, 2, 3]);
+        let m1 = code.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
         let m2 = ScalarPlaintext::from(4);
 
         let c = Scheme::mul(&ek, &c1, &m2);
         let m = Scheme::decrypt(&dk, &c);
-        assert_eq!(m, encoder.encode(&vec![4, 8, 12]));
+        assert_eq!(code.decode(&m), vec![4, 8, 12]);
     }
 
 });
