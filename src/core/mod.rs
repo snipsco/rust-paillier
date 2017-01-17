@@ -38,6 +38,16 @@ where
     }
 }
 
+use std::fmt;
+impl<I> fmt::Display for Plaintext<I>
+where
+    I: fmt::Display
+{
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 
 // impl<I, T> Encoding<T, Plaintext<I>> for Scheme<I>
 // where
