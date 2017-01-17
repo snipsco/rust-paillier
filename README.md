@@ -2,7 +2,7 @@
 
 [![License: MIT/Apache2](https://img.shields.io/badge/license-MIT%2fApache2-blue.svg)](https://img.shields.io/badge/license-MIT%2fApache2-blue.svg)
 
-Efficient pure-Rust library for the [Paillier](https://en.wikipedia.org/wiki/Paillier_cryptosystem) partially homomorphic encryption scheme, offering both plain and packed variants.
+Efficient pure-Rust library for the [Paillier](https://en.wikipedia.org/wiki/Paillier_cryptosystem) partially homomorphic encryption scheme, offering encoding of both scalars and vectors (for encrypting several values together).
 Supports several underlying arbitrary precision libraries, including [RAMP](https://github.com/Aatch/ramp) (default), [GMP](https://github.com/fizyk20/rust-gmp), and [num](https://github.com/rust-num/num).
 
 **Important**: while we have followed recommendations regarding the scheme itself, this library should currently be seen as an experimental implementation. In particular, no particular efforts have so far been made to harden it against non-cryptographic attacks, including side-channel attacks.
@@ -29,7 +29,10 @@ let c3 = Paillier::encrypt(&eek, &30);
 let c4 = Paillier::encrypt(&eek, &40);
 
 // add all of them together
-let c = Paillier::add(&ek, &Paillier::add(&ek, &c1, &c2), &Paillier::add(&ek, &c3, &c4));
+let c = Paillier::add(&ek,
+  &Paillier::add(&ek, &c1, &c2),
+  &Paillier::add(&ek, &c3, &c4)
+);
 
 // multiply the sum by 2
 let d = Paillier::mul(&eek, &c, &2);
@@ -42,7 +45,7 @@ println!("decrypted total sum is {}", m);
 
 # Installation
 
-Note that some functionality such as **key generation** is *not* included by default. See the [Building](#building) section for more details.
+Note that some functionality is *not* included by default; see the [Building](#building) section for more details.
 
 ## GitHub
 ```bash
@@ -60,38 +63,57 @@ paillier = { git="https://github.com/snipsco/rust-paillier.git" }
 
 ## Building
 
-### Key generation
-
-Key generation is optional since it is not always needed yet adds several extra (heavy) dependencies. To include use
-```
-cargo build --features "keygen"
-```
+Note that the nightly toolchain is currently needed in order to build the library.
 
 ### Arithmetic
 
-The library supports the use of different arithmetic libraries, currently defaulting to [`ramp`](https://github.com/Aatch/ramp) for efficiency.
+The library supports the use of different arithmetic libraries, currently defaulting to [RAMP](https://github.com/Aatch/ramp) for efficiency.
 
-For [`ramp`](https://github.com/Aatch/ramp)-only compilation use `cargo build` or
-```sh
-cargo build --features "inclramp"
+For [RAMP](https://github.com/Aatch/ramp)-only compilation use `cargo` parameters
 ```
-for [`num`](https://github.com/rust-num/num)-only compilation use
-```sh
-cargo build --no-default-features --features "inclnum"
+--no-default-features --features "inclramp defaultramp keygen"
 ```
-and finally, use
-```sh
-cargo build --features "inclramp inclnum"
+
+For [num](https://github.com/rust-num/num)-only compilation use
 ```
-to have both available (useful for e.g. performance tests).
+--no-default-features --features "inclnum defaultnum"
+```
+
+For [GMP](https://github.com/fizyk20/rust-gmp)-only compilation use
+```
+--no-default-features --features "inclgmp defaultgmp"
+```
+
+Finally, use
+```
+--no-default-features --features "inclramp inclnum inclgmp defaultramp"
+```
+to have one or more available, using one of them as the default (useful for e.g. performance tests).
+
+### Key generation
+
+Key generation is optional as it is not always needed yet adds several extra (heavy) dependencies. Moreover, key generation is currently only implemented for [RAMP](https://github.com/Aatch/ramp).
+
+While included by default it may be excluded using parameter
+```
+--no-default-features
+```
+in which case one or more arithmetic libraries must be specified as well as a default one, e.g.
+```
+--features "inclramp inclgmp defaultramp"
+```
+as shown in [above](#arithmetic) .
+
+
 
 
 # Performance
-These numbers were obtained by running
-```sh
+
+Several benches are included, testing both the underlying arithmetic libraries as well as the operations of the scheme. All may be run using
+```
 cargo bench
 ```
-using the nightly toolchain.
+and including either several arithmetic libraries and key generation as discussed [above](#building).
 
 # License
 
