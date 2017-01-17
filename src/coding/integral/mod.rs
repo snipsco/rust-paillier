@@ -1,4 +1,6 @@
 
+//! Integral code supporting both scalars and vectors.
+
 use super::*;
 
 pub mod scalar;
@@ -10,20 +12,23 @@ use arithimpl::traits::ConvertFrom;
 use std::marker::PhantomData;
 
 
-pub struct Coding<I> {
+/// Integral code for scalars and vectors.
+pub struct Code<I> {
+    /// Number of components to expect in vectors.
     pub component_count: usize,
-    pub component_size: usize,  // in bits
+    /// Bits to allocate for each component in vectors, including gap space.
+    pub component_size: usize,
     pub _phantom: PhantomData<I>
 }
 
 
-impl<I> Coding<I> {
-    pub fn default() -> Coding<I> {
+impl<I> Code<I> {
+    pub fn default() -> Code<I> {
         Self::new(10, 64)
     }
 
-    pub fn new(component_count: usize, component_size: usize) -> Coding<I> {
-        Coding {
+    pub fn new(component_count: usize, component_size: usize) -> Code<I> {
+        Code {
             component_count: component_count,
             component_size: component_size,
             _phantom: PhantomData,
@@ -32,7 +37,7 @@ impl<I> Coding<I> {
 }
 
 
-// impl<I> Encoder<usize> for Coding<I>
+// impl<I> Encoder<usize> for Code<I>
 // where
 //     I: From<usize>,
 // {
@@ -46,7 +51,7 @@ impl<I> Coding<I> {
 // }
 //
 //
-// impl<I> Encoder<u8> for Coding<I>
+// impl<I> Encoder<u8> for Code<I>
 // where
 //     I: From<u8>,
 // {
@@ -60,7 +65,7 @@ impl<I> Coding<I> {
 // }
 //
 //
-// impl<I> Encoder<u16> for Coding<I>
+// impl<I> Encoder<u16> for Code<I>
 // where
 //     I: From<u16>,
 // {
@@ -74,7 +79,7 @@ impl<I> Coding<I> {
 // }
 //
 //
-// impl<I> Encoder<u32> for Coding<I>
+// impl<I> Encoder<u32> for Code<I>
 // where
 //     I: From<u32>,
 // {
@@ -88,7 +93,7 @@ impl<I> Coding<I> {
 // }
 
 
-impl<I> Encoder<u64> for Coding<I>
+impl<I> Encoder<u64> for Code<I>
 where
     I: From<u64>,
 {
@@ -102,7 +107,7 @@ where
 }
 
 
-impl<I> Encoder<Vec<u64>> for Coding<I>
+impl<I> Encoder<Vec<u64>> for Code<I>
 where
     I: One,
     I: Clone,
@@ -124,7 +129,7 @@ where
 }
 
 
-// impl<I> Decoder<usize> for Coding<I>
+// impl<I> Decoder<usize> for Code<I>
 // where
 //     usize: ConvertFrom<I>,
 // {
@@ -134,7 +139,7 @@ where
 //     }
 // }
 //
-// impl<I> Decoder<u8> for Coding<I>
+// impl<I> Decoder<u8> for Code<I>
 // where
 //     u8: ConvertFrom<I>,
 // {
@@ -144,7 +149,7 @@ where
 //     }
 // }
 //
-// impl<I> Decoder<u16> for Coding<I>
+// impl<I> Decoder<u16> for Code<I>
 // where
 //     u16: ConvertFrom<I>,
 // {
@@ -154,7 +159,7 @@ where
 //     }
 // }
 //
-// impl<I> Decoder<u32> for Coding<I>
+// impl<I> Decoder<u32> for Code<I>
 // where
 //     u32: ConvertFrom<I>,
 // {
@@ -164,7 +169,7 @@ where
 //     }
 // }
 
-impl<I> Decoder<u64> for Coding<I>
+impl<I> Decoder<u64> for Code<I>
 where
     u64: ConvertFrom<I>,
 {
@@ -175,7 +180,7 @@ where
 }
 
 
-impl<I> Decoder<Vec<u64>> for Coding<I>
+impl<I> Decoder<Vec<u64>> for Code<I>
 where
     u64: ConvertFrom<I>,
     I: One,

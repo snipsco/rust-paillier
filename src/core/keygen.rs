@@ -1,4 +1,6 @@
 
+//! Key generation following standard recommendations.
+
 use super::*;
 use arithimpl::primes::*;
 
@@ -24,7 +26,7 @@ where
     for<'a>        I: Rem<&'a I, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
 {
-    fn keypair_of_size(bit_length: usize) -> (standard::EncryptionKey<I>, crt::DecryptionKey<I>) {
+    fn keypair_with_modulus_size(bit_length: usize) -> (standard::EncryptionKey<I>, crt::DecryptionKey<I>) {
         let p = I::sample_prime(bit_length/2);
         let q = I::sample_prime(bit_length/2);
         let n = &p * &q;

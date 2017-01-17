@@ -44,9 +44,14 @@ pub use core::standard::EncryptionKey;
 pub use core::crt::DecryptionKey;
 
 
-/// Implementation of the Paillier operations, such as encryption, decryption, and addition.
-pub struct Scheme<I> {
+/// Concrete type onto which all operations are added.
+pub struct AbstractPaillier<I> {
     junk: ::std::marker::PhantomData<I>
+}
+
+impl <I> AbstractScheme for AbstractPaillier<I>
+{
+    type BigInteger = I;
 }
 
 
@@ -58,7 +63,7 @@ pub struct Scheme<I> {
 mod rampinstance
 {
     pub use arithimpl::rampimpl::BigInteger as RampBigInteger;
-    pub type RampPaillier = ::Scheme<RampBigInteger>;
+    pub type RampPaillier = ::AbstractPaillier<RampBigInteger>;
 
     #[cfg(feature="defaultramp")]
     pub type BigInteger = RampBigInteger;
@@ -77,7 +82,7 @@ pub use self::rampinstance::*;
 mod numinstance
 {
     pub use arithimpl::numimpl::BigInteger as NumBigInteger;
-    pub type NumPaillier = ::Scheme<NumBigInteger>;
+    pub type NumPaillier = ::AbstractPaillier<NumBigInteger>;
 
     #[cfg(feature="defaultnum")]
     pub type BigInteger = NumBigInteger;
@@ -96,7 +101,7 @@ pub use self::numinstance::*;
 mod gmpinstance
 {
     pub use arithimpl::gmpimpl::BigInteger as GmpBigInteger;
-    pub type GmpPaillier = ::Scheme<GmpBigInteger>;
+    pub type GmpPaillier = ::AbstractPaillier<GmpBigInteger>;
 
     #[cfg(feature="defaultgmp")]
     pub type BigInteger = GmpBigInteger;

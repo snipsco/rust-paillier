@@ -1,4 +1,6 @@
 
+//! Standard encryption and decryption.
+
 use super::*;
 
 
@@ -9,7 +11,9 @@ pub struct EncryptionKey<I> {
     nn: I, // the modulus squared
 }
 
+
 impl<I> ::traits::EncryptionKey for EncryptionKey<I> {}
+
 
 impl<'i, I> From<&'i I> for EncryptionKey<I>
 where

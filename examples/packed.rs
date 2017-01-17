@@ -12,7 +12,7 @@ fn main() {
     use paillier::*;
 
     let (ek, dk) = Paillier::keypair();
-    let code = integral::Coding::new(3, 16);
+    let code = integral::Code::new(3, 16);
 
     //
     // Encryption

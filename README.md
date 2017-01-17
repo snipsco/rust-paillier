@@ -16,7 +16,7 @@ use paillier::*;
 let (ek, dk) = Paillier::keypair();
 
 // select integral coding
-let code = integral::Coding::default();
+let code = integral::Code::default();
 
 // pair keys with coding
 let eek = ek.with_code(&code);

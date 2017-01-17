@@ -1,27 +1,17 @@
 
-//! Standard Paillier supporting ciphertext addition and plaintext multiplication.
+//! Core Paillier encryption scheme supporting ciphertext addition and plaintext multiplication.
 
-use ::Scheme;
 use traits::*;
 
 use std::ops::{Add, Sub, Mul, Div, Rem};
 use num_traits::{One};
 use arithimpl::traits::*;
 
-impl <I> AbstractScheme for Scheme<I>
-{
-    type BigInteger = I;
-}
-
-
-
-
-
-
 
 /// Representation of unencrypted message.
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I>(pub I);
+
 
 /// Representation of encrypted message.
 #[derive(Debug,Clone)]
@@ -147,7 +137,7 @@ mod tests {
     #[cfg(feature="keygen")]
     #[test]
     fn test_correct_keygen() {
-        let (ek, dk): (standard::EncryptionKey<I>, _) = Scheme::keypair_of_size(2048);
+        let (ek, dk): (standard::EncryptionKey<I>, _) = Scheme::keypair_with_modulus_size(2048);
 
         let m = Plaintext::from(10);
         let c = Scheme::encrypt(&ek, &m);

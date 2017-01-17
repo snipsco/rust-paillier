@@ -1,5 +1,8 @@
 
+//! Faster decryption using the Chinese Remainder Theorem.
+
 use super::*;
+
 
 /// Decryption key that should be kept private.
 #[derive(Debug,Clone)]
@@ -16,7 +19,9 @@ pub struct DecryptionKey<I> {
     n: I,  // the modulus (also in public key)
 }
 
+
 impl<I> ::traits::DecryptionKey for DecryptionKey<I> {}
+
 
 impl<'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
 where
@@ -51,6 +56,7 @@ where
     }
 }
 
+
 impl<I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
 where
     I: One,
@@ -77,6 +83,7 @@ where
     }
 }
 
+
 fn h<I>(p: &I, pp: &I, n: &I) -> I
 where
     I: One,
@@ -99,6 +106,7 @@ where
     let hp = I::modinv(&lp, p);
     hp
 }
+
 
 fn crt<I>(mp: &I, mq: &I, dk: &DecryptionKey<I>) -> I
 where

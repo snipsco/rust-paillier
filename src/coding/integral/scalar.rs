@@ -1,10 +1,11 @@
 
+//! Integral scalars such as `u64`.
+
 use super::*;
 
 use std::marker::PhantomData;
 
-
-/// Representation of unencrypted message.
+/// Representation of unencrypted integral scalar.
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I, T> {
     pub data: core::Plaintext<I>,
@@ -12,7 +13,7 @@ pub struct Plaintext<I, T> {
 }
 
 
-/// Representation of encrypted message.
+/// Representation of encrypted integral scalar.
 #[derive(Debug,Clone)]
 pub struct Ciphertext<I, T> {
     pub data: core::Ciphertext<I>,
@@ -124,7 +125,7 @@ mod tests {
     #[test]
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
-        let code = Coding::default();
+        let code = Code::default();
 
         let m = code.encode(&10_u64);
         let c = Scheme::encrypt(&ek, &m);
@@ -136,7 +137,7 @@ mod tests {
     #[test]
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
-        let code = Coding::default();
+        let code = Code::default();
 
         let m1 = code.encode(&10_u64);
         let c1 = Scheme::encrypt(&ek, &m1);
@@ -151,7 +152,7 @@ mod tests {
     #[test]
     fn correct_multiplication() {
         let (ek, dk) = test_keypair();
-        let code = Coding::default();
+        let code = Code::default();
 
         let m1 = code.encode(&10_u64);
         let c1 = Scheme::encrypt(&ek, &m1);

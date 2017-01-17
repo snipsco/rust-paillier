@@ -1,24 +1,33 @@
 
+//! Variout coding schemes to be used in conjuction with the core Paillier encryption scheme.
+
 mod packing;
 pub mod integral;
 
 use super::*;
 use self::packing::*;
 
+/// Associating a key with a code.
 pub trait WithCode<'k, 'c, K, C> {
-     fn with_code(&'k self, code: &'c C) -> K;
+    /// Return key combined with code.
+    fn with_code(&'k self, code: &'c C) -> K;
 }
 
-
+/// Encryption key with associated encoder.
 pub struct EncodingEncryptionKey<'ek, 'e, EK: 'ek, E: 'e> {
     key: &'ek EK,
     encoder: &'e E,
 }
 
-pub struct DecodingDecryptionKey<'a, 'b, DK: 'a, D: 'b> {
-    key: &'a DK,
-    decoder: &'b D,
+impl<'ek, 'e, EK: 'ek, E: 'e> ::traits::EncryptionKey for EncodingEncryptionKey<'ek, 'e, EK, E> {}
+
+/// Decryption key with associated decoder.
+pub struct DecodingDecryptionKey<'dk, 'd, DK: 'dk, D: 'd> {
+    key: &'dk DK,
+    decoder: &'d D,
 }
+
+impl<'dk, 'd, DK: 'dk, D: 'd> ::traits::DecryptionKey for DecodingDecryptionKey<'dk, 'd, DK, D> {}
 
 impl<'a, 'b, EK, E> WithCode<'a, 'b, EncodingEncryptionKey<'a, 'b, EK, E>, E> for EK
 where

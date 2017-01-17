@@ -1,6 +1,7 @@
 
-//! Packed variant of Paillier allowing several (small) values to be encrypted together.
-//! Homomorphic properties are preserved, as long as the absolute values stay within specified bounds.
+//! Integral vectors such as `Vec<u64>`.
+//!
+//! Allows several (small) values to be encrypted together while preserving homomorphic properties.
 
 use super::*;
 use super::scalar;
@@ -8,7 +9,7 @@ use super::scalar;
 use std::marker::PhantomData;
 
 
-/// Representation of unencrypted message (vector).
+/// Representation of unencrypted integral vector.
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I, T> {
     pub data: core::Plaintext<I>,
@@ -18,7 +19,7 @@ pub struct Plaintext<I, T> {
 }
 
 
-/// Representation of encrypted message (vector).
+/// Representation of encrypted integral vector.
 #[derive(Debug,Clone)]
 pub struct Ciphertext<I, T> {
     pub data: core::Ciphertext<I>,
@@ -132,7 +133,7 @@ mod tests {
     fn test_correct_encryption_decryption() {
         let (ek, dk) = test_keypair();
 
-        let code = Coding::new(3, 64);
+        let code = Code::new(3, 64);
         let m = vec![1, 2, 3];
 
         let p = code.encode(&m);
@@ -148,7 +149,7 @@ mod tests {
     fn test_correct_addition() {
         let (ek, dk) = test_keypair();
 
-        let code = Coding::new(3, 16);
+        let code = Code::new(3, 16);
 
         let m1 = code.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);
@@ -164,7 +165,7 @@ mod tests {
     fn test_correct_multiplication() {
         let (ek, dk) = test_keypair();
 
-        let code = Coding::new(3, 16);
+        let code = Code::new(3, 16);
 
         let m1 = code.encode(&vec![1, 2, 3]);
         let c1 = Scheme::encrypt(&ek, &m1);

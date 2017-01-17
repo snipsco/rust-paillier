@@ -15,7 +15,7 @@ fn main() {
     type MyScheme = Scheme<BigInteger>;
 
     let (ek, dk) = MyScheme::keypair();
-    let code = integral::Coding::default();
+    let code = integral::Code::default();
 
     let eek = ek.with_code(&code);
 
