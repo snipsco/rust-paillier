@@ -1,6 +1,7 @@
 #![cfg(feature="inclramp")]
 
-extern crate ramp;
+// extern crate ramp;
+extern crate framp as ramp;
 use rand::{OsRng};
 use super::traits::*;
 
@@ -36,7 +37,6 @@ impl ModularArithmetic for ramp::Int {
         dividend.divmod(module)
     }
 
-    #[cfg(feature="rampexpmod")]
     fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
         base.modpow(exponent, modulus)
     }
