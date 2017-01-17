@@ -17,7 +17,7 @@ fn main() {
     let (ek, dk) = MyScheme::keypair();
     let code = integral::Coding::default();
 
-    let eek = ek.with_encoder(&code);
+    let eek = ek.with_code(&code);
 
     let c1 = MyScheme::encrypt(&eek, &10);
     let c2 = MyScheme::encrypt(&eek, &20);

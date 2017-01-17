@@ -33,15 +33,11 @@ macro_rules! bigint {
     };
 }
 
-mod packing;
-
-pub mod coding;
 pub mod arithimpl;
 pub mod traits;
 pub mod basic;
-pub mod integral;
+pub mod coding;
 
-use packing::*;
 pub use traits::*;
 pub use coding::*;
 pub use basic::standard::EncryptionKey;

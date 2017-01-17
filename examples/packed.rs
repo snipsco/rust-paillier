@@ -18,7 +18,7 @@ fn main() {
     // Encryption
     //
 
-    let eek = ek.with_encoder(&code);
+    let eek = ek.with_code(&code);
 
     let c1 = Paillier::encrypt(&eek, &vec![1,  5, 10]);
     let c2 = Paillier::encrypt(&eek, &vec![2, 10, 20]);
@@ -37,7 +37,7 @@ fn main() {
     // Decryption
     //
 
-    let ddk = dk.with_decoder(&code);
+    let ddk = dk.with_code(&code);
 
     let m: Vec<u64> = Paillier::decrypt(&ddk, &c);
     let n: Vec<u64> = Paillier::decrypt(&ddk, &d);

@@ -1,6 +1,5 @@
 
 extern crate paillier;
-use paillier::*;
 
 #[cfg(not(feature="keygen"))]
 fn main() {
@@ -10,11 +9,13 @@ fn main() {
 #[cfg(feature="keygen")]
 fn main() {
 
+    use paillier::*;
+
     let (ek, dk) = Paillier::keypair();
     let code = integral::Coding::default();
 
-    let eek = ek.with_encoder(&code);
-    let ddk = dk.with_decoder(&code);
+    let eek = ek.with_code(&code);
+    let ddk = dk.with_code(&code);
 
     let c1 = Paillier::encrypt(&eek, &10);
     let c2 = Paillier::encrypt(&eek, &20);
