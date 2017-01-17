@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 /// Representation of unencrypted message.
 #[derive(Debug,Clone,PartialEq)]
 pub struct Plaintext<I, T> {
-    pub data: basic::Plaintext<I>,
+    pub data: core::Plaintext<I>,
     pub _phantom: PhantomData<T>
 }
 
@@ -15,7 +15,7 @@ pub struct Plaintext<I, T> {
 /// Representation of encrypted message.
 #[derive(Debug,Clone)]
 pub struct Ciphertext<I, T> {
-    pub data: basic::Ciphertext<I>,
+    pub data: core::Ciphertext<I>,
     pub _phantom: PhantomData<T>
 }
 
@@ -23,7 +23,7 @@ pub struct Ciphertext<I, T> {
 impl<I, T, S, EK> Encryption<EK, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Encryption<EK, basic::Plaintext<I>, basic::Ciphertext<I>>,
+    S: Encryption<EK, core::Plaintext<I>, core::Ciphertext<I>>,
 {
     fn encrypt(ek: &EK, m: &Plaintext<I, T>) -> Ciphertext<I, T> {
         Ciphertext {
@@ -37,7 +37,7 @@ where
 impl<I, T, S, DK> Decryption<DK, Ciphertext<I, T>, Plaintext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Decryption<DK, basic::Ciphertext<I>, basic::Plaintext<I>>,
+    S: Decryption<DK, core::Ciphertext<I>, core::Plaintext<I>>,
 {
     fn decrypt(dk: &DK, c: &Ciphertext<I, T>) -> Plaintext<I, T> {
         Plaintext {
@@ -51,7 +51,7 @@ where
 impl<I, T, S, EK> Rerandomisation<EK, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Rerandomisation<EK, basic::Ciphertext<I>>,
+    S: Rerandomisation<EK, core::Ciphertext<I>>,
 {
     fn rerandomise(ek: &EK, c: &Ciphertext<I, T>) -> Ciphertext<I, T> {
         Ciphertext {
@@ -65,7 +65,7 @@ where
 impl<I, T, S, EK> Addition<EK, Ciphertext<I, T>, Ciphertext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Addition<EK, basic::Ciphertext<I>, basic::Ciphertext<I>, basic::Ciphertext<I>>,
+    S: Addition<EK, core::Ciphertext<I>, core::Ciphertext<I>, core::Ciphertext<I>>,
 {
     fn add(ek: &EK, c1: &Ciphertext<I, T>, c2: &Ciphertext<I, T>) -> Ciphertext<I, T> {
         Ciphertext {
@@ -79,7 +79,7 @@ where
 impl<I, T, S, EK> Multiplication<EK, Ciphertext<I, T>, Plaintext<I, T>, Ciphertext<I, T>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    S: Multiplication<EK, basic::Ciphertext<I>, basic::Plaintext<I>, basic::Ciphertext<I>>,
+    S: Multiplication<EK, core::Ciphertext<I>, core::Plaintext<I>, core::Ciphertext<I>>,
 {
     fn mul(ek: &EK, c1: &Ciphertext<I, T>, m2: &Plaintext<I, T>) -> Ciphertext<I, T> {
         Ciphertext {
@@ -97,7 +97,7 @@ where
 {
     fn from(x: T) -> Plaintext<I, T> {
         Plaintext{
-            data: basic::Plaintext(I::from(x)),
+            data: core::Plaintext(I::from(x)),
             _phantom: PhantomData
         }
     }

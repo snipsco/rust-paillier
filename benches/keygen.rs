@@ -8,7 +8,7 @@ mod bench {
     use bencher::Bencher;
     use paillier::RampPaillier;
     use paillier::*;
-    use paillier::basic::*;
+    use paillier::core::*;
 
     pub fn bench_key_generation_512<Scheme>(b: &mut Bencher)
     where

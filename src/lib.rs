@@ -35,13 +35,13 @@ macro_rules! bigint {
 
 pub mod arithimpl;
 pub mod traits;
-pub mod basic;
+pub mod core;
 pub mod coding;
 
 pub use traits::*;
 pub use coding::*;
-pub use basic::standard::EncryptionKey;
-pub use basic::crt::DecryptionKey;
+pub use core::standard::EncryptionKey;
+pub use core::crt::DecryptionKey;
 
 
 /// Implementation of the Paillier operations, such as encryption, decryption, and addition.

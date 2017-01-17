@@ -5,8 +5,8 @@ extern crate num_traits;
 
 use bencher::Bencher;
 use paillier::*;
-use paillier::basic::*;
-use paillier::basic::standard::*;
+use paillier::core::*;
+use paillier::core::standard::*;
 
 pub fn bench_encryption<S>(b: &mut Bencher)
 where

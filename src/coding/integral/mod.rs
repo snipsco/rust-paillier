@@ -95,7 +95,7 @@ where
     type Target=scalar::Plaintext<I, u64>;
     fn encode(&self, x: &u64) -> Self::Target {
         scalar::Plaintext {
-            data: basic::Plaintext(I::from(*x)),
+            data: core::Plaintext(I::from(*x)),
             _phantom: PhantomData,
         }
     }
@@ -115,7 +115,7 @@ where
     type Target=vector::Plaintext<I, u64>;
     fn encode(&self, x: &Vec<u64>) -> Self::Target {
         vector::Plaintext {
-            data: basic::Plaintext(pack(x, self.component_count, self.component_size)),
+            data: core::Plaintext(pack(x, self.component_count, self.component_size)),
             component_count: self.component_count,
             component_size: self.component_size,
             _phantom: PhantomData,
