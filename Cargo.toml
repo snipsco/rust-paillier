@@ -1,6 +1,6 @@
 [package]
 name = "paillier"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   "Mario Cornejo <mario.cornejo@snips.ai>",
   "Morten Dahl <morten.dahl@snips.ai>"
@@ -18,7 +18,7 @@ repository = "https://github.com/snips/rust-paillier"
 license = "MIT/Apache-2.0"
 
 [features]
-default = ["inclramp", "rampexpmod", "defaultramp"]
+default = ["inclramp", "rampexpmod", "defaultramp", "keygen"]
 keygen = ["primal"]
 inclramp = ["ramp"]
 inclnum = ["num"]
