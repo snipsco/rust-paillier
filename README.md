@@ -7,38 +7,36 @@ Supports several underlying arbitrary precision libraries, including [RAMP](http
 
 **Important**: while we have followed recommendations regarding the scheme itself, this library should currently be seen as an experimental implementation. In particular, no particular efforts have so far been made to harden it against non-cryptographic attacks, including side-channel attacks.
 
-The library exposes the scheme operations through two traits and implementations, for respectively a single large value (`plain::Scheme`) and for a vector of smaller values (`packed::Scheme`):
+
 ```rust
-pub trait AbstractScheme {
+extern crate paillier;
+use paillier::*;
 
-    fn encrypt(
-      ek: &EncryptionKey<Self::BigInteger>,
-       m: &Plaintext<Self::BigInteger>)
-       -> Ciphertext<Self::BigInteger>;
+// generate a fresh keypair
+let (ek, dk) = Paillier::keypair();
 
-    fn decrypt(
-      dk: &DecryptionKey<Self::BigInteger>,
-       c: &Ciphertext<Self::BigInteger>)
-       -> Plaintext<Self::BigInteger>;
+// select integral coding
+let code = integral::Coding::default();
 
-    fn add(
-      ek: &EncryptionKey<Self::BigInteger>,
-      c1: &Ciphertext<Self::BigInteger>,
-      c2: &Ciphertext<Self::BigInteger>)
-       -> Ciphertext<Self::BigInteger>;
+// pair keys with coding
+let eek = ek.with_code(&code);
+let ddk = dk.with_code(&code);
 
-    fn mult(
-      ek: &EncryptionKey<Self::BigInteger>,
-      c1: &Ciphertext<Self::BigInteger>,
-      m2: &Plaintext<Self::BigInteger>)
-       -> Ciphertext<Self::BigInteger>;
+// encrypt four values
+let c1 = Paillier::encrypt(&eek, &10);
+let c2 = Paillier::encrypt(&eek, &20);
+let c3 = Paillier::encrypt(&eek, &30);
+let c4 = Paillier::encrypt(&eek, &40);
 
-    fn rerandomise(
-      ek: &EncryptionKey<Self::BigInteger>,
-       c: &Ciphertext<Self::BigInteger>)
-       -> Ciphertext<Self::BigInteger>;
+// add all of them together
+let c = Paillier::add(&ek, &Paillier::add(&ek, &c1, &c2), &Paillier::add(&ek, &c3, &c4));
 
-}
+// multiply the sum by 2
+let d = Paillier::mul(&eek, &c, &2);
+
+// decrypt final result
+let m: u64 = Paillier::decrypt(&ddk, &d);
+println!("decrypted total sum is {}", m);
 ```
 
 
