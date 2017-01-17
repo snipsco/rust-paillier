@@ -100,51 +100,51 @@ pub mod bench
 
     pub fn bench_decryption_crt_small(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
-        let ek = core::EncryptionKey::from(&n);
+        let ek = core::standard::EncryptionKey::from(&n);
         let dk = core::crt::DecryptionKey::from((&p, &q));
 
-        let m = Scheme::encode(10);
-        let c = Scheme::encrypt(&ek, &m);
+        let m = core::Plaintext::from(10);
+        let c = S::encrypt(&ek, &m);
         b.iter(|| {
-            let _ = Scheme::decrypt(&dk, &c);
+            let _ = S::decrypt(&dk, &c);
         });
     }
 
     pub fn bench_decryption_crt_random(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
-        let ek = core::EncryptionKey::from(&n);
+        let ek = core::standard::EncryptionKey::from(&n);
         let dk = core::crt::DecryptionKey::from((&p, &q));
 
         use arithimpl::traits::Samplable;
         let m = core::Plaintext(<S as AbstractScheme>::BigInteger::sample_below(&n));
-        let c = Scheme::encrypt(&ek, &m);
+        let c = S::encrypt(&ek, &m);
         b.iter(|| {
-            let _ = Scheme::decrypt(&dk, &c);
+            let _ = S::decrypt(&dk, &c);
         });
     }
 
     pub fn bench_decryption_standard_small(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
-        let ek = core::EncryptionKey::from(&n);
+        let ek = core::standard::EncryptionKey::from(&n);
         let dk = core::standard::DecryptionKey::from((&p, &q));
 
-        let m = Scheme::encode(10);
-        let c = Scheme::encrypt(&ek, &m);
+        let m = core::Plaintext::from(10);
+        let c = S::encrypt(&ek, &m);
         b.iter(|| {
-            let _ = Scheme::decrypt(&dk, &c);
+            let _ = S::decrypt(&dk, &c);
         });
     }
 
     pub fn bench_decryption_standard_random(b: &mut Bencher) {
         let (p, q, n) = S::test_keypair();
-        let ek = core::EncryptionKey::from(&n);
+        let ek = core::standard::EncryptionKey::from(&n);
         let dk = core::standard::DecryptionKey::from((&p, &q));
 
         use arithimpl::traits::Samplable;
         let m = core::Plaintext(<S as AbstractScheme>::BigInteger::sample_below(&n));
-        let c = Scheme::encrypt(&ek, &m);
+        let c = S::encrypt(&ek, &m);
         b.iter(|| {
-            let _ = Scheme::decrypt(&dk, &c);
+            let _ = S::decrypt(&dk, &c);
         });
     }
 

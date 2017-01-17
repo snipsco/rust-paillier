@@ -8,73 +8,33 @@ mod bench {
     use bencher::Bencher;
     use paillier::RampPaillier;
     use paillier::*;
-    use paillier::core::*;
 
-    pub fn bench_key_generation_512<Scheme>(b: &mut Bencher)
+    pub fn bench_key_generation<S, KS>(b: &mut Bencher)
     where
-        Scheme : AbstractScheme,
-        Scheme : Encoding<
-            usize,
-            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
-        Scheme : KeyGeneration<
-            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
-            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
+        S : AbstractScheme,
+        S : KeyGeneration<
+                EncryptionKey<<S as AbstractScheme>::BigInteger>,
+                DecryptionKey<<S as AbstractScheme>::BigInteger>>,
+        KS : KeySize,
     {
         b.iter(|| {
-            Scheme::keypair_of_size(512);
+            S::keypair_with_modulus_size(KS::get());
         });
     }
 
-    pub fn bench_key_generation_1024<Scheme>(b: &mut Bencher)
-    where
-        Scheme : AbstractScheme,
-        Scheme : Encoding<
-            usize,
-            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
-        Scheme : KeyGeneration<
-            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
-            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
-    {
-        b.iter(|| {
-            Scheme::keypair_of_size(1024);
-        });
-    }
-
-    pub fn bench_key_generation_2048<Scheme>(b: &mut Bencher)
-    where
-        Scheme : AbstractScheme,
-        Scheme : Encoding<
-            usize,
-            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
-        Scheme : KeyGeneration<
-            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
-            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
-    {
-        b.iter(|| {
-            Scheme::keypair_of_size(2048);
-        });
-    }
-
-    pub fn bench_key_generation_3072<Scheme>(b: &mut Bencher)
-    where
-        Scheme : AbstractScheme,
-        Scheme : Encoding<
-            usize,
-            Plaintext<<Scheme as AbstractScheme>::BigInteger>>,
-        Scheme : KeyGeneration<
-            EncryptionKey<<Scheme as AbstractScheme>::BigInteger>,
-            DecryptionKey<<Scheme as AbstractScheme>::BigInteger>>
-    {
-        b.iter(|| {
-            Scheme::keypair_of_size(3072);
-        });
-    }
+    pub trait KeySize { fn get() -> usize; }
+    struct KeySize512;  impl KeySize for KeySize512  { fn get() -> usize {  512 } }
+    struct KeySize1024; impl KeySize for KeySize1024 { fn get() -> usize { 1024 } }
+    struct KeySize2048; impl KeySize for KeySize2048 { fn get() -> usize { 2048 } }
+    struct KeySize3072; impl KeySize for KeySize3072 { fn get() -> usize { 3072 } }
+    struct KeySize4096; impl KeySize for KeySize4096 { fn get() -> usize { 4096 } }
 
     benchmark_group!(ramp,
-        self::bench_key_generation_512<RampPaillier>,
-        self::bench_key_generation_1024<RampPaillier>,
-        self::bench_key_generation_2048<RampPaillier>,
-        self::bench_key_generation_3072<RampPaillier>
+        self::bench_key_generation<RampPaillier, KeySize512>,
+        self::bench_key_generation<RampPaillier, KeySize1024>,
+        self::bench_key_generation<RampPaillier, KeySize2048>,
+        self::bench_key_generation<RampPaillier, KeySize3072>,
+        self::bench_key_generation<RampPaillier, KeySize4096>
     );
 
 }
