@@ -110,7 +110,7 @@ bigint!(I,
 mod tests {
 
     use super::I;
-    use ::Scheme;
+    use ::AbstractPaillier;
     use ::integral::scalar::*;
 
     fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>) {
@@ -128,9 +128,9 @@ mod tests {
         let code = Code::default();
 
         let m = code.encode(&10_u64);
-        let c = Scheme::encrypt(&ek, &m);
+        let c = AbstractPaillier::encrypt(&ek, &m);
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let recovered_m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -140,12 +140,12 @@ mod tests {
         let code = Code::default();
 
         let m1 = code.encode(&10_u64);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = code.encode(&20_u64);
-        let c2 = Scheme::encrypt(&ek, &m2);
+        let c2 = AbstractPaillier::encrypt(&ek, &m2);
 
-        let c = Scheme::add(&ek, &c1, &c2);
-        let m = Scheme::decrypt(&dk, &c);
+        let c = AbstractPaillier::add(&ek, &c1, &c2);
+        let m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(m, code.encode(&30_u64));
     }
 
@@ -155,11 +155,11 @@ mod tests {
         let code = Code::default();
 
         let m1 = code.encode(&10_u64);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = code.encode(&20_u64);
 
-        let c = Scheme::mul(&ek, &c1, &m2);
-        let m = Scheme::decrypt(&dk, &c);
+        let c = AbstractPaillier::mul(&ek, &c1, &m2);
+        let m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(m, code.encode(&200_u64));
     }
 

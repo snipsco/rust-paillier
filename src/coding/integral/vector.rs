@@ -115,7 +115,7 @@ bigint!(I,
 mod tests {
 
     use super::I;
-    use ::Scheme;
+    use ::AbstractPaillier;
     use ::integral::vector::*;
 
     fn test_keypair() -> (EncryptionKey<I>, DecryptionKey<I>) {
@@ -137,8 +137,8 @@ mod tests {
         let m = vec![1, 2, 3];
 
         let p = code.encode(&m);
-        let c = Scheme::encrypt(&ek, &p);
-        let recovered_p = Scheme::decrypt(&dk, &c);
+        let c = AbstractPaillier::encrypt(&ek, &p);
+        let recovered_p = AbstractPaillier::decrypt(&dk, &c);
         let recovered_m: Vec<u64> = code.decode(&recovered_p);
 
         assert_eq!(recovered_p, p);
@@ -152,12 +152,12 @@ mod tests {
         let code = Code::new(3, 16);
 
         let m1 = code.encode(&vec![1, 2, 3]);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = code.encode(&vec![1, 2, 3]);
-        let c2 = Scheme::encrypt(&ek, &m2);
+        let c2 = AbstractPaillier::encrypt(&ek, &m2);
 
-        let c = Scheme::add(&ek, &c1, &c2);
-        let m: Vec<_> = code.decode(&Scheme::decrypt(&dk, &c));
+        let c = AbstractPaillier::add(&ek, &c1, &c2);
+        let m: Vec<_> = code.decode(&AbstractPaillier::decrypt(&dk, &c));
         assert_eq!(m, vec![2, 4, 6]);
     }
 
@@ -168,11 +168,11 @@ mod tests {
         let code = Code::new(3, 16);
 
         let m1 = code.encode(&vec![1, 2, 3]);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = scalar::Plaintext::from(4);
 
-        let c = Scheme::mul(&ek, &c1, &m2);
-        let m: Vec<_> = code.decode(&Scheme::decrypt(&dk, &c));
+        let c = AbstractPaillier::mul(&ek, &c1, &m2);
+        let m: Vec<_> = code.decode(&AbstractPaillier::decrypt(&dk, &c));
         assert_eq!(m, vec![4, 8, 12]);
     }
 

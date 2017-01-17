@@ -68,8 +68,9 @@ where
 }
 
 
-impl<I> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for Scheme<I>
+impl<I, S> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: Samplable,
     I: ModularArithmetic,
     for<'a>    &'a I: Mul<I, Output=I>,
@@ -83,8 +84,9 @@ where
 }
 
 
-impl<I> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
+impl<I, S> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: One,
     I: Samplable,
     I: ModularArithmetic,
@@ -102,8 +104,9 @@ where
 }
 
 
-impl<I> Addition<EncryptionKey<I>, Ciphertext<I>, Ciphertext<I>, Ciphertext<I>> for Scheme<I>
+impl<I, S> Addition<EncryptionKey<I>, Ciphertext<I>, Ciphertext<I>, Ciphertext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
     for<'b>        I: Rem<&'b I, Output=I>,
 {
@@ -114,8 +117,9 @@ where
 }
 
 
-impl<I> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>, Ciphertext<I>> for Scheme<I>
+impl<I, S> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>, Ciphertext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: ModularArithmetic,
 {
     fn mul(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, m2: &Plaintext<I>) -> Ciphertext<I> {
@@ -125,8 +129,9 @@ where
 }
 
 
-impl<I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+impl<I, S> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: One,
     I: ModularArithmetic,
     for<'a>    &'a I: Sub<I, Output=I>,

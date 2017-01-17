@@ -84,6 +84,7 @@ bigint!(I,
 #[cfg(test)]
 mod tests {
 
+    use ::AbstractPaillier;
     use super::I;
     use ::core::*;
 
@@ -101,9 +102,9 @@ mod tests {
         let (ek, dk) = test_keypair();
 
         let m = Plaintext::from(10);
-        let c = Scheme::encrypt(&ek, &m);
+        let c = AbstractPaillier::encrypt(&ek, &m);
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let recovered_m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 
@@ -112,12 +113,12 @@ mod tests {
         let (ek, dk) = test_keypair();
 
         let m1 = Plaintext::from(10);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = Plaintext::from(20);
-        let c2 = Scheme::encrypt(&ek, &m2);
+        let c2 = AbstractPaillier::encrypt(&ek, &m2);
 
-        let c = Scheme::add(&ek, &c1, &c2);
-        let m = Scheme::decrypt(&dk, &c);
+        let c = AbstractPaillier::add(&ek, &c1, &c2);
+        let m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(m, Plaintext::from(30));
     }
 
@@ -126,23 +127,23 @@ mod tests {
         let (ek, dk) = test_keypair();
 
         let m1 = Plaintext::from(10);
-        let c1 = Scheme::encrypt(&ek, &m1);
+        let c1 = AbstractPaillier::encrypt(&ek, &m1);
         let m2 = Plaintext::from(20);
 
-        let c = Scheme::mul(&ek, &c1, &m2);
-        let m = Scheme::decrypt(&dk, &c);
+        let c = AbstractPaillier::mul(&ek, &c1, &m2);
+        let m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(m, Plaintext::from(200));
     }
 
     #[cfg(feature="keygen")]
     #[test]
     fn test_correct_keygen() {
-        let (ek, dk): (standard::EncryptionKey<I>, _) = Scheme::keypair_with_modulus_size(2048);
+        let (ek, dk): (standard::EncryptionKey<I>, _) = AbstractPaillier::keypair_with_modulus_size(2048);
 
         let m = Plaintext::from(10);
-        let c = Scheme::encrypt(&ek, &m);
+        let c = AbstractPaillier::encrypt(&ek, &m);
 
-        let recovered_m = Scheme::decrypt(&dk, &c);
+        let recovered_m = AbstractPaillier::decrypt(&dk, &c);
         assert_eq!(recovered_m, m);
     }
 

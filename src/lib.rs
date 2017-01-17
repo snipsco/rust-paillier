@@ -49,9 +49,8 @@ pub struct AbstractPaillier<I> {
     junk: ::std::marker::PhantomData<I>
 }
 
-impl <I> AbstractScheme for AbstractPaillier<I>
-{
-    type BigInteger = I;
+impl<I> AbstractScheme for AbstractPaillier<I> {
+    type BigInteger=I;
 }
 
 

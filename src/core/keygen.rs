@@ -4,8 +4,9 @@
 use super::*;
 use arithimpl::primes::*;
 
-impl<I> KeyGeneration<standard::EncryptionKey<I>, crt::DecryptionKey<I>> for Scheme<I>
+impl<I, S> KeyGeneration<standard::EncryptionKey<I>, crt::DecryptionKey<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: From<u64>,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
     I: Clone,

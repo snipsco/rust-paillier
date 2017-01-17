@@ -57,8 +57,9 @@ where
 }
 
 
-impl<I> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for Scheme<I>
+impl<I, S> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for S
 where
+    S: AbstractScheme<BigInteger=I>,
     I: One,
     I: ModularArithmetic,
     for<'a>    &'a I: Add<I, Output=I>,

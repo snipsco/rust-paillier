@@ -9,10 +9,10 @@ fn main() {
 #[cfg(feature="keygen")]
 fn main() {
 
-    use paillier::{Scheme, BigInteger, integral};  // could be a specific type such as RampBigInteger as well
+    use paillier::{AbstractPaillier, BigInteger, integral};  // could be a specific type such as RampBigInteger as well
     use paillier::coding::*;
     use paillier::traits::*;
-    type MyScheme = Scheme<BigInteger>;
+    type MyScheme = AbstractPaillier<BigInteger>;
 
     let (ek, dk) = MyScheme::keypair();
     let code = integral::Code::default();
