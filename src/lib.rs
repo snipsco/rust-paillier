@@ -44,7 +44,7 @@ pub use core::standard::EncryptionKey;
 pub use core::crt::DecryptionKey;
 
 
-/// Concrete type onto which all operations are added.
+/// Parameterised type onto which all operations are added (see `Paillier`).
 pub struct AbstractPaillier<I> {
     junk: ::std::marker::PhantomData<I>
 }
