@@ -5,21 +5,31 @@ extern crate gmp;
 use super::traits::*;
 use self::gmp::mpz::Mpz;
 use self::gmp::rand::RandState;
+use rand::{OsRng, Rng};
 
 impl Samplable for Mpz {
+
     fn sample_below(upper: &Self) -> Self {
-        let mut r = RandState::new();
-        r.urandom(upper)
-    }
+        let mut state = RandState::new();
+        let mut rng = OsRng::new().unwrap();
 
-    #[allow(unused_variables)]
+        let seed = rng.gen();
+        state.seed_ui(seed);
+        state.urandom(upper)
+    }
+    
     fn sample(bitsize: usize) -> Self {
-        unimplemented!();
+        let mut state = RandState::new();
+        let mut rng = OsRng::new().unwrap();
+
+        let seed = rng.gen();
+        state.seed_ui(seed);
+
+        state.urandom_2exp(bitsize as u64)
     }
 
-    #[allow(unused_variables)]
     fn sample_range(lower: &Self, upper: &Self) -> Self {
-        unimplemented!();
+        lower + Self::sample_below(&(upper - lower))
     }
 }
 
@@ -30,7 +40,7 @@ impl NumberTests for Mpz {
 }
 
 pub use num_traits::{Zero, One};
-
+use std::ops::{Div, Rem};
 impl ModularArithmetic for Mpz {
 
     fn modinv(a: &Self, prime: &Self) -> Self {
@@ -45,7 +55,9 @@ impl ModularArithmetic for Mpz {
         a.gcdext(b)
     }
 
-    // TODO: native way of doing divmod (supported by GMP but not currently by Rust wrapper)
+    fn divmod(dividend: &Self, module: &Self) -> (Self, Self) {
+        (dividend.div(module), dividend.rem(module))
+    }
 
 }
 
@@ -55,5 +67,16 @@ impl ConvertFrom<Mpz> for u64 {
         foo.unwrap()
     }
 }
+
+impl BitManipulation for Mpz {
+    fn set_bit(self: &mut Self, bit: usize, bit_val: bool) {
+        if bit_val {
+            self.setbit(bit);
+        } else {
+            self.clrbit(bit);
+        }
+    }
+}
+
 
 pub type BigInteger = Mpz;
