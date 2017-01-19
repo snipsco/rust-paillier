@@ -4,28 +4,26 @@ extern crate gmp;
 
 use super::traits::*;
 use self::gmp::mpz::Mpz;
-use self::gmp::rand::RandState;
 use rand::{OsRng, Rng};
 
 impl Samplable for Mpz {
 
     fn sample_below(upper: &Self) -> Self {
-        let mut state = RandState::new();
-        let mut rng = OsRng::new().unwrap();
-
-        let seed = rng.gen();
-        state.seed_ui(seed);
-        state.urandom(upper)
+        let bits = upper.bit_length();
+        loop {
+            let n =  Self::sample(bits);
+            if n < *upper {
+                return n
+            }
+        }
     }
     
-    fn sample(bitsize: usize) -> Self {
-        let mut state = RandState::new();
+    fn sample(bitsize: usize) -> Self {        
         let mut rng = OsRng::new().unwrap();
-
-        let seed = rng.gen();
-        state.seed_ui(seed);
-
-        state.urandom_2exp(bitsize as u64)
+        let bytes = (bitsize -1) / 8 + 1;
+        let mut buf: Vec<u8> = vec![0; bytes];
+        rng.fill_bytes(&mut buf);
+        Self::from(&*buf) >> (bytes*8-bitsize)
     }
 
     fn sample_range(lower: &Self, upper: &Self) -> Self {
@@ -55,9 +53,7 @@ impl ModularArithmetic for Mpz {
         a.gcdext(b)
     }
 
-    fn divmod(dividend: &Self, module: &Self) -> (Self, Self) {
-        (dividend.div(module), dividend.rem(module))
-    }
+    // TODO: native way of doing divmod (supported by GMP but not currently by Rust wrapper)
 
 }
 

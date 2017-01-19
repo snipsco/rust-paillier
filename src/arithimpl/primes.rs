@@ -294,14 +294,12 @@ where
         }
     }
     // Second, do a little Fermat test on the candidate
-   // println!("FERMAT");
     if !fermat(candidate) {
         return false;
     }
 
     // Finally, do a Miller-Rabin test
     // NIST recommendation is 5 rounds for 512 and 1024 bits. For 1536 bits, the recommendation is 4 rounds.
-    //println!("RABIN");
     if !miller_rabin(candidate, 5) {
         return false;
     }
