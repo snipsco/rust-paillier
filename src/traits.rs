@@ -9,17 +9,30 @@ pub trait AbstractScheme
 }
 
 /// Secure generation of fresh key pairs.
-pub trait KeyGeneration<EK, DK>
+pub trait KeyGeneration<KP>
 {
     /// Generate fresh key pair with currently recommended security level (2048 bit modulus).
-    fn keypair() -> (EK, DK) {
+    fn keypair() -> KP {
         Self::keypair_with_modulus_size(2048)
     }
 
     /// Generate fresh key pair with security level specified as the `bit_length` of the modulus.
     ///
     /// Currently recommended security level is a minimum of 2048 bits.
-    fn keypair_with_modulus_size(big_length: usize) -> (EK, DK);
+    fn keypair_with_modulus_size(big_length: usize) -> KP;
+}
+
+
+pub trait KeyDerivation {
+    type DefaultEK;
+    type DefaultDK;
+
+    fn default_encryption_key(&self) -> Self::DefaultEK;
+    fn default_decryption_key(&self) -> Self::DefaultDK;
+
+    fn keys(&self) -> (Self::DefaultEK, Self::DefaultDK) {
+        (self.default_encryption_key(), self.default_decryption_key())
+    }
 }
 
 /// Marker trait for encryption keys.

@@ -12,7 +12,7 @@ fn main() {
     use paillier::*;
 
     // generate a fresh keypair
-    let (ek, dk) = Paillier::keypair();
+    let (ek, dk) = Paillier::keypair().keys();
 
     // select integral coding
     let code = integral::Code::default();

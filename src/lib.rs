@@ -39,6 +39,7 @@ pub mod coding;
 
 pub use traits::*;
 pub use coding::*;
+pub use core::Keypair;
 pub use core::standard::EncryptionKey;
 pub use core::crt::DecryptionKey;
 
