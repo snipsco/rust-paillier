@@ -8,22 +8,22 @@ use super::*;
 #[derive(Debug,Clone)]
 pub struct DecryptionKey<I> {
     p: I,  // first prime
+    q: I,  // second prime
+    n: I,  // the modulus (also in public key)
     pp: I,
     pminusone: I,
-    q: I,  // second prime
     qq: I,
     qminusone: I,
     pinvq: I,
     hp: I,
     hq: I,
-    n: I,  // the modulus (also in public key)
 }
 
 
 impl<I> ::traits::DecryptionKey for DecryptionKey<I> {}
 
 
-impl<'p, 'q, I> From<(&'p I, &'q I)> for DecryptionKey<I>
+impl<'kp, I> From<&'kp Keypair<I>> for DecryptionKey<I>
 where
     I: Clone,
     I: One,
@@ -34,16 +34,19 @@ where
     for<'b>         I: Rem<&'b I, Output=I>,
     for<'b>         I: Div<&'b I, Output=I>,
 {
-    fn from((p, q): (&I, &I)) -> DecryptionKey<I> {
+    fn from(keypair: &'kp Keypair<I>) -> DecryptionKey<I> {
+        let ref p = keypair.p;
+        let ref q = keypair.q;
         let ref pp = p * p;
         let ref qq = q * q;
         let ref n = p * q;
         DecryptionKey {
-            p: p.clone(),
+            p: p.clone(), // TODO store ref to keypair instead
+            q: q.clone(),
+
             pp: pp.clone(),
             pminusone: p - I::one(),
 
-            q: q.clone(),
             qq: qq.clone(),
             qminusone: q - I::one(),
 

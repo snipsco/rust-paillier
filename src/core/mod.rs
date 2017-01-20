@@ -50,12 +50,11 @@ where // TODO clean up bounds
     type DefaultDK = crt::DecryptionKey<I>;
 
     fn default_encryption_key(&self) -> Self::DefaultEK {
-        let ref n = &self.p * &self.q;
-        standard::EncryptionKey::from(n)
+        standard::EncryptionKey::from(self)
     }
 
     fn default_decryption_key(&self) -> Self::DefaultDK {
-        crt::DecryptionKey::from((&self.p, &self.q))
+        crt::DecryptionKey::from(self)
     }
 }
 
