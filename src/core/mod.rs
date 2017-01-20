@@ -25,7 +25,7 @@ pub struct Plaintext<I>(pub I);
 pub struct Ciphertext<I>(pub I);
 
 
-impl<I> KeyDerivation for Keypair<I>
+impl<I> DefaultKeys for Keypair<I>
 where // TODO clean up bounds
     I: From<u64>,
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
@@ -46,14 +46,14 @@ where // TODO clean up bounds
     for<'a>        I: Rem<&'a I, Output=I>,
     for<'a,'b> &'a I: Rem<&'b I, Output=I>
  {
-    type DefaultEK = standard::EncryptionKey<I>;
-    type DefaultDK = crt::DecryptionKey<I>;
+    type EK = standard::EncryptionKey<I>;
+    type DK = crt::DecryptionKey<I>;
 
-    fn default_encryption_key(&self) -> Self::DefaultEK {
+    fn encryption_key(&self) -> Self::EK {
         standard::EncryptionKey::from(self)
     }
 
-    fn default_decryption_key(&self) -> Self::DefaultDK {
+    fn decryption_key(&self) -> Self::DK {
         crt::DecryptionKey::from(self)
     }
 }

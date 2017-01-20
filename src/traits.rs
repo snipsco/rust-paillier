@@ -23,15 +23,15 @@ pub trait KeyGeneration<KP>
 }
 
 
-pub trait KeyDerivation {
-    type DefaultEK;
-    type DefaultDK;
+pub trait DefaultKeys {
+    type EK;
+    type DK;
 
-    fn default_encryption_key(&self) -> Self::DefaultEK;
-    fn default_decryption_key(&self) -> Self::DefaultDK;
+    fn encryption_key(&self) -> Self::EK;
+    fn decryption_key(&self) -> Self::DK;
 
-    fn keys(&self) -> (Self::DefaultEK, Self::DefaultDK) {
-        (self.default_encryption_key(), self.default_decryption_key())
+    fn keys(&self) -> (Self::EK, Self::DK) {
+        (self.encryption_key(), self.decryption_key())
     }
 }
 
