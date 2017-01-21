@@ -1,7 +1,5 @@
 
-use std::ops::{Add, Sub, Mul, Div, Rem, Shr, Neg};
 use std::marker::Sized;
-use num_traits::{Zero, One};
 
 pub trait NumberTests {
     fn is_zero(&Self) -> bool;
@@ -18,6 +16,25 @@ where
     fn egcd(a: &Self, b: &Self) -> (Self, Self, Self);
     fn divmod(dividend: &Self, module: &Self) -> (Self, Self);
 }
+
+pub trait Samplable {
+    fn sample_below(upper: &Self) -> Self;
+    fn sample_range(lower: &Self, upper: &Self) -> Self;
+    fn sample(bitsize: usize) -> Self;
+}
+
+pub trait BitManipulation {
+    fn set_bit(self: &mut Self, bit: usize, bit_val: bool);
+}
+
+pub trait ConvertFrom<T> {
+    fn _from(&T) -> Self;
+}
+
+
+
+use std::ops::{Add, Sub, Mul, Div, Rem, Shr, Neg};
+use num_traits::{Zero, One};
 
 impl<I> ModularArithmetic for I
 where
@@ -77,18 +94,4 @@ where
         (dividend / module, dividend % module)
     }
 
-}
-
-pub trait Samplable {
-    fn sample_below(upper: &Self) -> Self;
-    fn sample_range(lower: &Self, upper: &Self) -> Self;
-    fn sample(bitsize: usize) -> Self;
-}
-
-pub trait BitManipulation {
-    fn set_bit(self: &mut Self, bit: usize, bit_val: bool);
-}
-
-pub trait ConvertFrom<T> {
-    fn _from(&T) -> Self;
 }

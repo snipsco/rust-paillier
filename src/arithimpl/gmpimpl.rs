@@ -17,8 +17,8 @@ impl Samplable for Mpz {
             }
         }
     }
-    
-    fn sample(bitsize: usize) -> Self {        
+
+    fn sample(bitsize: usize) -> Self {
         let mut rng = OsRng::new().unwrap();
         let bytes = (bitsize -1) / 8 + 1;
         let mut buf: Vec<u8> = vec![0; bytes];
@@ -38,7 +38,6 @@ impl NumberTests for Mpz {
 }
 
 pub use num_traits::{Zero, One};
-use std::ops::{Div, Rem};
 impl ModularArithmetic for Mpz {
 
     fn modinv(a: &Self, prime: &Self) -> Self {

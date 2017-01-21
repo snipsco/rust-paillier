@@ -126,8 +126,8 @@ bigint!(I,
 #[cfg(test)]
 mod tests {
 
-    use ::AbstractPaillier;
     use super::I;
+    use ::AbstractPaillier;
     use ::core::*;
 
     fn test_keypair() -> Keypair<I> {
