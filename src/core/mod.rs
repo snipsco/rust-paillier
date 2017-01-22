@@ -14,6 +14,17 @@ pub struct Keypair<I> {
     pub q: I,
 }
 
+impl<'p, 'q, I> From<(&'p I, &'q I)> for Keypair<I>
+where
+    I: Clone,
+{
+    fn from((p, q) : (&'p I, &'q I)) -> Keypair<I> {
+        Keypair {
+            p: p.clone(),
+            q: q.clone(),
+        }
+    }
+}
 
 /// Representation of unencrypted message.
 #[derive(Debug,Clone,PartialEq)]
@@ -28,10 +39,9 @@ pub struct Ciphertext<I>(pub I);
 impl<I> DefaultKeys for Keypair<I>
 where // TODO clean up bounds
     I: From<u64>,
-    I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
     I: Clone,
     I: Samplable,
-    I: ModularArithmetic,
+    I: ModInv,
     I: One,
                    I: Mul<Output=I>,
     for<'a>    &'a I: Mul<I, Output=I>,
@@ -44,7 +54,7 @@ where // TODO clean up bounds
     for<'b>        I: Div<&'b I, Output=I>,
     for<'a,'b> &'a I: Div<&'b I, Output=I>,
     for<'a>        I: Rem<&'a I, Output=I>,
-    for<'a,'b> &'a I: Rem<&'b I, Output=I>
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
  {
     type EK = standard::EncryptionKey<I>;
     type DK = crt::DecryptionKey<I>;

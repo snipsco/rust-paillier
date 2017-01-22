@@ -27,7 +27,7 @@ impl<'kp, I> From<&'kp Keypair<I>> for DecryptionKey<I>
 where
     I: Clone,
     I: One,
-    I: ModularArithmetic,
+    I: ModInv,
     for<'a>     &'a I: Sub<I, Output=I>,
     for<'a,'b>  &'a I: Mul<&'b I, Output=I>,
     for<'b>         I: Sub<&'b I, Output=I>,
@@ -64,7 +64,7 @@ impl<I, S> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     I: One,
-    I: ModularArithmetic,
+    I: ModPow,
     for<'a>    &'a I: Add<I, Output=I>,
     for<'a>    &'a I: Sub<I, Output=I>,
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
@@ -91,7 +91,7 @@ where
 fn h<I>(p: &I, pp: &I, n: &I) -> I
 where
     I: One,
-    I: ModularArithmetic,
+    I: ModInv,
     for<'a> &'a I: Sub<I, Output=I>,
     for<'b>     I: Sub<&'b I, Output=I>,
     for<'b>     I: Rem<&'b I, Output=I>,

@@ -7,14 +7,21 @@ pub trait NumberTests {
     fn is_negative(me: &Self) -> bool;
 }
 
-pub trait ModularArithmetic
+pub trait ModPow
+{
+    fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self;
+}
+
+pub trait EGCD
 where
     Self: Sized
 {
-    fn modinv(a: &Self, prime: &Self) -> Self;
-    fn modpow(x: &Self, e: &Self, prime: &Self) -> Self;
     fn egcd(a: &Self, b: &Self) -> (Self, Self, Self);
-    fn divmod(dividend: &Self, module: &Self) -> (Self, Self);
+}
+
+pub trait ModInv
+{
+    fn modinv(a: &Self, prime: &Self) -> Self;
 }
 
 pub trait Samplable {
@@ -31,13 +38,11 @@ pub trait ConvertFrom<T> {
     fn _from(&T) -> Self;
 }
 
-
-
 use std::ops::{Add, Sub, Mul, Div, Rem, Shr, Neg};
 use num_traits::{Zero, One};
 
-impl<I> ModularArithmetic for I
-where
+impl<I> ModPow for I
+where // TODO clean up
     I: Clone + Sized,
     I: Zero + One + Neg<Output=I> + NumberTests,
     for<'a>    &'a I: Mul<I, Output=I>,
@@ -51,18 +56,6 @@ where
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
     I: Shr<usize, Output=I>,
 {
-
-    default fn modinv(a: &Self, prime: &Self) -> Self {
-        let r = a % prime;
-        let ref d = if NumberTests::is_negative(&r) {
-            let r = r.neg();
-            -Self::egcd(prime, &r).2
-        } else {
-            Self::egcd(prime, &r).2
-        };
-        (prime + d) % prime
-    }
-
     default fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
         let mut base = base.clone();
         let mut exponent = exponent.clone();
@@ -77,7 +70,26 @@ where
         }
         result
     }
+}
 
+impl<I> EGCD for I
+where // TODO clean up
+    I: Clone,
+    I: Sized,
+    I: Zero + One,
+    I: Neg<Output=I>,
+    I: NumberTests,
+    for<'a>    &'a I: Mul<I, Output=I>,
+    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Div<&'b I, Output=I>,
+    for<'a>        I: Rem<&'a I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
+    for<'a,'b> &'a I: Add<&'b I, Output=I>,
+                   I: Sub<I, Output=I>,
+    for<'b>        I: Sub<&'b I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    I: Shr<usize, Output=I>,
+{
     default fn egcd(a: &Self, b: &Self) -> (Self, Self, Self) {
         if NumberTests::is_zero(b) {
             (a.clone(), Self::one(), Self::zero())
@@ -89,9 +101,32 @@ where
             (d, t, new_t)
         }
     }
+}
 
-    default fn divmod(dividend: &Self, module: &Self) -> (Self, Self) {
-        (dividend / module, dividend % module)
+impl<I> ModInv for I
+where
+    I: EGCD,
+    I: Clone + Sized,
+    I: Zero + One + Neg<Output=I> + NumberTests,
+    for<'a>    &'a I: Mul<I, Output=I>,
+    for<'a,'b> &'a I: Mul<&'b I, Output=I>,
+    for<'a,'b> &'a I: Div<&'b I, Output=I>,
+    for<'a>        I: Rem<&'a I, Output=I>,
+    for<'a,'b> &'a I: Rem<&'b I, Output=I>,
+    for<'a,'b> &'a I: Add<&'b I, Output=I>,
+                   I: Sub<I, Output=I>,
+    for<'b>        I: Sub<&'b I, Output=I>,
+    for<'a,'b> &'a I: Sub<&'b I, Output=I>,
+    I: Shr<usize, Output=I>,
+{
+    default fn modinv(a: &Self, prime: &Self) -> Self {
+        let r = a % prime;
+        let ref d = if NumberTests::is_negative(&r) {
+            let r = r.neg();
+            -Self::egcd(prime, &r).2
+        } else {
+            Self::egcd(prime, &r).2
+        };
+        (prime + d) % prime
     }
-
 }

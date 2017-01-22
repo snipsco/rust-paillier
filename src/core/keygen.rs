@@ -11,7 +11,6 @@ where // TODO clean up bounds
     I: ::std::str::FromStr, <I as ::std::str::FromStr>::Err: ::std::fmt::Debug,
     I: Clone,
     I: Samplable,
-    I: ModularArithmetic,
     I: One,
     I: PrimeSampable,
                    I: Mul<Output=I>,

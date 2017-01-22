@@ -12,9 +12,7 @@ mod bench {
     pub fn bench_key_generation<S, KS>(b: &mut Bencher)
     where
         S : AbstractScheme,
-        S : KeyGeneration<
-                EncryptionKey<<S as AbstractScheme>::BigInteger>,
-                DecryptionKey<<S as AbstractScheme>::BigInteger>>,
+        S : KeyGeneration<Keypair<<S as AbstractScheme>::BigInteger>>,
         KS : KeySize,
     {
         b.iter(|| {

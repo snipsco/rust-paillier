@@ -7,7 +7,7 @@ use super::*;
 /// Encryption key that may be shared publicly.
 #[derive(Debug,Clone)]
 pub struct EncryptionKey<I> {
-    n: I,  // the modulus
+    pub n: I,  // the modulus
     nn: I, // the modulus squared
 }
 
@@ -47,7 +47,7 @@ impl<'kp, I> From<&'kp Keypair<I>> for DecryptionKey<I>
 where
     I: One,
     I: Clone,
-    I: ModularArithmetic,
+    I: ModInv,
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
     for<'a,'b> &'a I: Sub<&'b I, Output=I>,
 {
@@ -73,7 +73,7 @@ impl<I, S> Rerandomisation<EncryptionKey<I>, Ciphertext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     I: Samplable,
-    I: ModularArithmetic,
+    I: ModPow,
     for<'a>    &'a I: Mul<I, Output=I>,
     for<'b>        I: Rem<&'b I, Output=I>,
 {
@@ -88,9 +88,8 @@ where
 impl<I, S> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
+    S: Rerandomisation<EncryptionKey<I>, Ciphertext<I>>,
     I: One,
-    I: Samplable,
-    I: ModularArithmetic,
     for<'a,'b> &'a I: Add<&'b I, Output=I>,
     for<'a>    &'a I: Mul<I, Output=I>,
     for<'a,'b> &'a I: Mul<&'b I, Output=I>,
@@ -121,7 +120,7 @@ where
 impl<I, S> Multiplication<EncryptionKey<I>, Ciphertext<I>, Plaintext<I>, Ciphertext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
-    I: ModularArithmetic,
+    I: ModPow,
 {
     fn mul(ek: &EncryptionKey<I>, c1: &Ciphertext<I>, m2: &Plaintext<I>) -> Ciphertext<I> {
         let c = I::modpow(&c1.0, &m2.0, &ek.nn);
@@ -134,7 +133,7 @@ impl<I, S> Decryption<DecryptionKey<I>, Ciphertext<I>, Plaintext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
     I: One,
-    I: ModularArithmetic,
+    I: ModPow,
     for<'a>    &'a I: Sub<I, Output=I>,
     for<'b>        I: Mul<&'b I, Output=I>,
     for<'b>        I: Div<&'b I, Output=I>,
