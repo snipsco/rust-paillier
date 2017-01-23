@@ -121,6 +121,7 @@ where
     (u - I::one()) / n
 }
 
+pub mod generic;
 pub mod standard;
 pub mod crt;
 
