@@ -11,9 +11,10 @@ use helpers::*;
 scheme!(S, bench, group,
 pub mod bench
 {
-    use paillier::*;
+
     use super::*;
     use bencher::Bencher;
+    use paillier::*;
 
     use TestKeyGeneration;
 

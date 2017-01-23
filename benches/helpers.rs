@@ -1,4 +1,10 @@
 
+#![allow(dead_code)]
+
+
+extern crate paillier;
+extern crate num_traits;
+
 use paillier::*;
 
 // 1024 bit primes
@@ -15,7 +21,7 @@ pub trait TestKeyGeneration<I>
 }
 
 use std::ops::{Add, Sub, Mul, Div, Rem};
-use num_traits::{One};
+use self::num_traits::{One};
 use paillier::arithimpl::traits::*;
 
 impl<I> TestKeyGeneration<I> for AbstractPaillier<I>
@@ -72,3 +78,11 @@ where
         Keypair::from((p, q))
     }
 }
+
+
+pub trait KeySize { fn get() -> usize; }
+pub struct KeySize512;  impl KeySize for KeySize512  { fn get() -> usize {  512 } }
+pub struct KeySize1024; impl KeySize for KeySize1024 { fn get() -> usize { 1024 } }
+pub struct KeySize2048; impl KeySize for KeySize2048 { fn get() -> usize { 2048 } }
+pub struct KeySize3072; impl KeySize for KeySize3072 { fn get() -> usize { 3072 } }
+pub struct KeySize4096; impl KeySize for KeySize4096 { fn get() -> usize { 4096 } }
