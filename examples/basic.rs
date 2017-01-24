@@ -28,7 +28,7 @@ fn main() {
     let c4 = Paillier::encrypt(&eek, &40);
 
     // add all of them together
-    let c = Paillier::add(&ek, &Paillier::add(&ek, &c1, &c2), &Paillier::add(&ek, &c3, &c4));
+    let c = Paillier::add(&eek, &Paillier::add(&eek, &c1, &c2), &Paillier::add(&eek, &c3, &c4));
 
     // multiply the sum by 2
     let d = Paillier::mul(&eek, &c, &2);
