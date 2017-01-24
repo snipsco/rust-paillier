@@ -1,5 +1,5 @@
 
-//! Standard encryption and decryption.
+//! Slower generic encryption supporting an arbitrary generator.
 
 use super::*;
 
@@ -82,10 +82,9 @@ bigint!(I,
 mod tests {
 
     use super::I;
-    use super::*;
     use ::AbstractPaillier;
     use ::core::*;
-    use ::coding::integral::*;
+    use ::coding::*;
 
     fn test_keypair() -> Keypair<I> {
         let p = str::parse("148677972634832330983979593310074301486537017973460461278300587514468301043894574906886127642530475786889672304776052879927627556769456140664043088700743909632312483413393134504352834240399191134336344285483935856491230340093391784574980688823380828143810804684752914935441384845195613674104960646037368551517").unwrap();
@@ -101,7 +100,7 @@ mod tests {
         let ref keypair = test_keypair();
         let ek: generic::EncryptionKey<_> = generic::EncryptionKey::from(keypair);
         let dk: crt::DecryptionKey<_> = crt::DecryptionKey::from(keypair);
-        let code = Code::default();
+        let code = integral::Code::default();
 
         let m = code.encode(&10_u64);
         let c = AbstractPaillier::encrypt(&ek, &m);
