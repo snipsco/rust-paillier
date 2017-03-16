@@ -41,7 +41,7 @@ pub use num_traits::{Zero, One};
 
 impl ModPow for Mpz {
     fn modpow(base: &Self, exponent: &Self, modulus: &Self) -> Self {
-        base.powm(exponent, modulus)
+        base.powm_sec(exponent, modulus)
     }
 }
 
