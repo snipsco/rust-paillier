@@ -1,4 +1,3 @@
-
 //! Abstract operations exposed by the library.
 
 /// Marker trait for the Paillier scheme.
@@ -110,4 +109,11 @@ pub trait Decoder<T>
 
     /// Decode `Source` types into `T` types.
     fn decode(&self, y: &Self::Source) -> T;
+}
+
+pub trait ZeroKnowledgeProof<EK, T>
+{
+    fn generate_challenge(ek: &EK) -> Vec<T>;
+    fn generate_proof(challenge: &Vec<T>) -> T;
+    fn verify(challenge: &Vec<T>, proof: &T) -> Result<(), String>;
 }

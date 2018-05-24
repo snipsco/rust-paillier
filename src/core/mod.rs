@@ -200,4 +200,14 @@ mod tests {
         assert_eq!(recovered_m, m);
     }
 
+    #[test]
+    fn test_zero_knowledge_proof() {
+        let (ek, dk) = test_keypair().keys();
+
+        let challenge = AbstractPaillier::generate_challenge(&ek);
+        let proof = AbstractPaillier::generate_proof(&challenge);
+        let result = AbstractPaillier::verify(&challenge, &proof);
+
+        assert!(result.is_ok());
+    }
 });
