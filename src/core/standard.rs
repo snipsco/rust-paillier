@@ -84,7 +84,6 @@ where
     }
 }
 
-
 impl<I, S> Encryption<EncryptionKey<I>, Plaintext<I>, Ciphertext<I>> for S
 where
     S: AbstractScheme<BigInteger=I>,
@@ -143,5 +142,22 @@ where
         let u = I::modpow(&c.0, &dk.lambda, &dk.nn);
         let m = (l(&u, &dk.n) * &dk.mu) % &dk.n;
         Plaintext(m)
+    }
+}
+
+impl <I, S> ZeroKnowledgeProof<EncryptionKey<I>, I> for S
+    where
+        S: AbstractScheme<BigInteger=I>
+{
+    fn generate_challenge(ek: &EncryptionKey<I>) -> Vec<I> {
+        unimplemented!();
+    }
+
+    fn generate_proof(challenge: &Vec<I>) -> I {
+        unimplemented!();
+    }
+
+    fn verify(challenge: &Vec<I>, proof: &I) -> Result<(), String> {
+        unimplemented!();
     }
 }
